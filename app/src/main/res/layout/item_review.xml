@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp" app:cardCornerRadius="6dp" app:cardElevation="2dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="12dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_marginBottom="8dp">
+            <ImageView android:id="@+id/imgAvatar"
+                android:layout_width="36dp" android:layout_height="36dp" android:layout_marginEnd="8dp"/>
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <TextView android:id="@+id/tvUsername" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textStyle="bold" android:textColor="@color/text_main"/>
+                <TextView android:id="@+id/tvDate" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textColor="@color/text_muted" android:textSize="11sp"/>
+            </LinearLayout>
+            <TextView android:id="@+id/tvRating" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="@color/brand_cyan" android:textStyle="bold"/>
+        </LinearLayout>
+        <Button android:id="@+id/btnSpoiler"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="SPOILERS — tap to reveal"
+            android:backgroundTint="@color/brand_yellow" android:visibility="gone"/>
+        <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+            <TextView android:id="@+id/tvContent"
+                android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary"/>
+            <View android:id="@+id/spoilerOverlay"
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:background="@color/overlay_dark" android:visibility="gone"/>
+        </FrameLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_marginTop="8dp">
+            <ImageButton android:id="@+id/btnLike"
+                android:layout_width="32dp" android:layout_height="32dp"
+                android:src="@drawable/ic_heart_outline"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
+            <TextView android:id="@+id/tvLikes"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical" android:textColor="@color/text_secondary"
+                android:layout_marginStart="4dp" android:text="0"/>
+            <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
+            <ImageButton android:id="@+id/btnReport"
+                android:layout_width="32dp" android:layout_height="32dp"
+                android:src="@drawable/ic_flag"
+                android:background="?attr/selectableItemBackgroundBorderless"/>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

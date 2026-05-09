@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/bg_light">
+    <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center"/>
+    <LinearLayout android:id="@+id/contentRoot" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:padding="16dp" android:visibility="gone">
+        <TextView android:id="@+id/tvListTitle" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_main"/>
+        <TextView android:id="@+id/tvListDescription" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textColor="@color/text_secondary" android:layout_marginTop="4dp"/>
+        <TextView android:id="@+id/tvListInfo" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textColor="@color/text_muted" android:textSize="12sp" android:layout_marginTop="4dp"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp">
+            <Button android:id="@+id/btnAddGame" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="+ Add Game" android:backgroundTint="@color/brand_cyan" android:layout_marginEnd="8dp"/>
+            <Button android:id="@+id/btnDeleteList" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="Delete List" android:backgroundTint="@color/brand_red"/>
+        </LinearLayout>
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvGames" android:layout_width="match_parent"
+            android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="16dp"/>
+    </LinearLayout>
+</FrameLayout>

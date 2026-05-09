@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Hitboxd" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brand_cyan</item>
+        <item name="colorPrimaryVariant">@color/brand_cyan</item>
+        <item name="colorOnPrimary">@color/text_white</item>
+        <item name="colorSecondary">@color/brand_green</item>
+        <item name="colorSecondaryVariant">@color/brand_green</item>
+        <item name="colorOnSecondary">@color/text_white</item>
+        <item name="android:colorBackground">@color/bg_main</item>
+        <item name="android:statusBarColor">@color/bg_dark</item>
+        <item name="android:navigationBarColor">@color/bg_dark</item>
+        <item name="tabStyle">@style/Widget.Hitboxd.TabLayout</item>
+        <item name="materialButtonStyle">@style/Widget.Hitboxd.Button</item>
+    </style>
+
+    <style name="Widget.Hitboxd.TabLayout" parent="Widget.MaterialComponents.TabLayout">
+        <item name="tabIndicatorColor">@color/brand_cyan</item>
+        <item name="tabSelectedTextColor">@color/brand_cyan</item>
+        <item name="tabTextColor">@color/text_secondary</item>
+        <item name="tabBackground">@color/bg_main</item>
+    </style>
+
+    <style name="Widget.Hitboxd.Button" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/brand_cyan</item>
+        <item name="android:textColor">@color/text_white</item>
+        <item name="cornerRadius">6dp</item>
+    </style>
+
+    <!-- Status button styles -->
+    <style name="Button.Status.Played" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="strokeColor">@color/brand_green</item>
+        <item name="android:textColor">@color/brand_green</item>
+        <item name="cornerRadius">6dp</item>
+    </style>
+    <style name="Button.Status.Pending" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="strokeColor">@color/brand_yellow</item>
+        <item name="android:textColor">@color/brand_yellow</item>
+        <item name="cornerRadius">6dp</item>
+    </style>
+    <style name="Button.Status.Abandoned" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="strokeColor">@color/brand_red</item>
+        <item name="android:textColor">@color/brand_red</item>
+        <item name="cornerRadius">6dp</item>
+    </style>
+
+    <!-- Dialog -->
+    <style name="Theme.Hitboxd.Dialog" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="colorPrimary">@color/brand_cyan</item>
+        <item name="android:colorBackground">@color/bg_card</item>
+    </style>
+</resources>

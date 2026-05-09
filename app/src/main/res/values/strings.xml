@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hitboxd</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_catalog">Catalog</string>
+    <string name="nav_tracker">Tracker</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Auth -->
+    <string name="sign_in">Sign In</string>
+    <string name="create_account">Create Account</string>
+    <string name="username">Username</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="logout">Logout</string>
+
+    <!-- Game status -->
+    <string name="status_played">Played</string>
+    <string name="status_playing">Playing</string>
+    <string name="status_pending">Pending</string>
+    <string name="status_abandoned">Abandoned</string>
+
+    <!-- Actions -->
+    <string name="write_review">Write a Review</string>
+    <string name="follow">Follow</string>
+    <string name="following">Following</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="approve">Approve</string>
+
+    <!-- Placeholders -->
+    <string name="no_description">No description available.</string>
+    <string name="no_reviews">No reviews yet. Be the first!</string>
+    <string name="no_games">No games found.</string>
+    <string name="no_lists">No lists yet.</string>
+
+    <!-- Tracker -->
+    <string name="tracker_skip">SKIP</string>
+    <string name="tracker_played">PLAYED</string>
+    <string name="tracker_empty">No more games to show</string>
+
+    <!-- Admin -->
+    <string name="admin_dashboard">Admin Dashboard</string>
+    <string name="access_denied">Access denied. Admin only.</string>
+    <string name="pending_reports">Pending reports</string>
+
+    <!-- Errors -->
+    <string name="error_generic">Something went wrong. Try again.</string>
+    <string name="error_network">Check your connection.</string>
+    <string name="field_required">This field is required</string>
+</resources>

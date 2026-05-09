@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/bg_main">
+    <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center"/>
+    <TextView android:id="@+id/tvAccessDenied" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="center" android:text="Access denied. Admin only." android:textColor="@color/brand_red" android:visibility="gone"/>
+    <androidx.core.widget.NestedScrollView android:id="@+id/contentRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Admin Dashboard"
+                android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_main" android:layout_marginBottom="8dp"/>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="16dp">
+                <LinearLayout android:layout_width="0dp" android:layout_height="100dp" android:layout_weight="1"
+                    android:orientation="vertical" android:gravity="center" android:background="@color/brand_cyan" android:layout_marginEnd="8dp">
+                    <TextView android:id="@+id/tvTotalGames" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textSize="24sp" android:textColor="@color/text_white" android:text="0"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Games" android:textColor="@color/text_white"/>
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="100dp" android:layout_weight="1"
+                    android:orientation="vertical" android:gravity="center" android:background="@color/brand_yellow" android:layout_marginEnd="8dp">
+                    <TextView android:id="@+id/tvPendingReports" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold" android:textSize="24sp" android:textColor="@color/text_main" android:text="0"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Reports" android:textColor="@color/text_main"/>
+                </LinearLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="100dp" android:layout_weight="1"
+                    android:orientation="vertical" android:gravity="center" android:background="@color/bg_panel_dark">
+                    <TextView android:id="@+id/tvAdminId" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/text_white" android:textSize="12sp"/>
+                    <TextView android:id="@+id/tvAdminUsername" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/brand_cyan" android:textStyle="bold"/>
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pending Reports " android:textStyle="bold" android:textColor="@color/text_main"/>
+                <TextView android:id="@+id/tvReportCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="@color/brand_red" android:textStyle="bold"/>
+            </LinearLayout>
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvReportedReviews" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" android:layout_marginBottom="24dp"/>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Game Catalog" android:textStyle="bold" android:textColor="@color/text_main" android:layout_marginBottom="8dp"/>
+            <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvGames" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false"/>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</FrameLayout>

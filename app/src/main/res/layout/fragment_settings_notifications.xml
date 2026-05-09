@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="16dp" android:background="@color/bg_light">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:text="Notifications" android:textSize="18sp" android:textStyle="bold"
+        android:textColor="@color/text_main" android:layout_marginBottom="24dp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:layout_marginBottom="16dp">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="New Follower"
+            android:textColor="@color/text_main"/>
+        <Switch android:id="@+id/switchNewFollower"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:checked="true" android:thumbTint="@color/brand_cyan"/>
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:layout_marginBottom="16dp">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="New Review on my game"
+            android:textColor="@color/text_main"/>
+        <Switch android:id="@+id/switchNewReview"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:checked="true" android:thumbTint="@color/brand_cyan"/>
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="Someone liked my review"
+            android:textColor="@color/text_main"/>
+        <Switch android:id="@+id/switchNewLike"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:checked="true" android:thumbTint="@color/brand_cyan"/>
+    </LinearLayout>
+</LinearLayout>
