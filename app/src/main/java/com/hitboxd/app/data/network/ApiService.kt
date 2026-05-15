@@ -155,7 +155,7 @@ interface ApiService {
     suspend fun approveReview(@Path("reviewId") reviewId: Int): Response<MessageResponse>
 
     // ─── LISTS (/api/lists) ──────────────────────────────
-    // ⚠️ No existe PUT para editar lista ni DELETE para item individual
+    // ⚠️ No existe PUT para editar lista
     @POST("lists")
     suspend fun createList(@Body body: ListRequest): Response<CreateResponse>
 
@@ -169,6 +169,12 @@ interface ApiService {
     suspend fun addGameToList(
         @Path("listId") listId: Int,
         @Body body: AddGameToListRequest
+    ): Response<MessageResponse>
+
+    @DELETE("lists/{listId}/items/{itemId}")
+    suspend fun removeListItem(
+        @Path("listId") listId: Int,
+        @Path("itemId") itemId: Int
     ): Response<MessageResponse>
 
     @DELETE("lists/{listId}")

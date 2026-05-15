@@ -187,7 +187,7 @@ class ReviewRepository {
 }
 
 // ─── LIST REPOSITORY ─────────────────────────────────────
-// ⚠️ No existe PUT para editar lista ni DELETE para item individual
+// ⚠️ No existe PUT para editar lista
 class ListRepository {
     suspend fun createList(title: String, description: String? = null) =
         safeCall { api.createList(ListRequest(title, description)) }
@@ -200,6 +200,9 @@ class ListRepository {
 
     suspend fun addGameToList(listId: Int, gameId: Int, comment: String? = null) =
         safeCall { api.addGameToList(listId, AddGameToListRequest(gameId, comment)) }
+
+    suspend fun removeItem(listId: Int, itemId: Int) =
+        safeCall { api.removeListItem(listId, itemId) }
 
     suspend fun deleteList(listId: Int) =
         safeCall { api.deleteList(listId) }

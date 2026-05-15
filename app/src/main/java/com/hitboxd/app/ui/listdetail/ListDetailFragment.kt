@@ -13,6 +13,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.hitboxd.app.R
 import com.hitboxd.app.common.adapter.ListItemAdapter
@@ -75,6 +76,27 @@ class ListDetailViewModel : ViewModel() {
         }
     }
 
+    fun removeItem(itemId: Int) {
+        viewModelScope.launch {
+            when (val r = repo.removeItem(listId, itemId)) {
+                is NetworkResult.Success -> {
+                    val updated = _listData.value?.let { list ->
+                        val filtered = list.games.filter { it.idItem != itemId }
+                            .mapIndexed { i, g -> g.copy(position = i + 1) }
+                        list.copy(games = filtered)
+                    }
+                    _listData.value = updated
+                    _toast.emit("Game removed" to false)
+                }
+                is NetworkResult.Error -> {
+                    val msg = if (r.code == 404) "Game could not be removed" else "Error: ${r.message}"
+                    _toast.emit(msg to true)
+                }
+                else -> {}
+            }
+        }
+    }
+
     fun deleteList(onSuccess: () -> Unit) {
         viewModelScope.launch {
             _isSaving.value = true
@@ -105,24 +127,13 @@ class ListDetailFragment : Fragment() {
         session = SessionManager(requireContext())
         val listId = arguments?.getInt("listId") ?: return
 
-        val adapter = ListItemAdapter(
-            onGameClick = { item ->
-                findNavController().navigate(
-                    R.id.action_listDetailFragment_to_gameDetailFragment,
-                    bundleOf("slug" to (item.slug ?: ""))
-                )
-            }
-        )
-        view.findViewById<RecyclerView>(R.id.rvGames).apply {
+        val rv = view.findViewById<RecyclerView>(R.id.rvGames).apply {
             layoutManager = LinearLayoutManager(context)
-            this.adapter  = adapter
         }
 
         // Botón agregar juego
         view.findViewById<Button>(R.id.btnAddGame).setOnClickListener {
-            // En producción aquí abriría un buscador; por ahora pide el ID directamente
             AddGameToListDialogFragment.newInstance(0) { comment ->
-                // El ID real del juego vendría de un buscador; aquí es placeholder
                 vm.addGame(0, comment)
             }.show(childFragmentManager, "addGame")
         }
@@ -137,13 +148,14 @@ class ListDetailFragment : Fragment() {
             }.show(childFragmentManager, "confirmDelete")
         }
 
-        observeVm(view, adapter, listId)
+        observeVm(view, rv)
         vm.init(listId)
     }
 
-    private fun observeVm(view: View, adapter: ListItemAdapter, listId: Int) {
+    private fun observeVm(view: View, rv: RecyclerView) {
         val progressBar = view.findViewById<View>(R.id.progressBar)
         val contentRoot = view.findViewById<View>(R.id.contentRoot)
+        var adapter: ListItemAdapter? = null
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.isLoading.collect { loading ->
@@ -157,12 +169,37 @@ class ListDetailFragment : Fragment() {
                 list ?: return@collect
                 view.findViewById<TextView>(R.id.tvListTitle).text = list.title
                 view.findViewById<TextView>(R.id.tvListDescription).text = list.description ?: ""
-                view.findViewById<TextView>(R.id.tvListInfo).text =
-                    "${list.games.size} juegos • ${list.username ?: "Tú"}"
+                view.findViewById<TextView>(R.id.tvListInfo).text = getString(
+                    R.string.format_list_info,
+                    list.games.size,
+                    list.username ?: getString(R.string.list_owner_you)
+                )
+
+                val isMine = list.idUser == session.getUserId()
+
+                if (adapter == null) {
+                    adapter = ListItemAdapter(
+                        isOwner = isMine,
+                        onGameClick = { item ->
+                            findNavController().navigate(
+                                R.id.action_listDetailFragment_to_gameDetailFragment,
+                                bundleOf("slug" to (item.slug ?: ""))
+                            )
+                        },
+                        onRemove = { itemId ->
+                            MaterialAlertDialogBuilder(requireContext())
+                                .setTitle("Remove game")
+                                .setMessage("Remove this game from the list?")
+                                .setPositiveButton("Remove") { _, _ -> vm.removeItem(itemId) }
+                                .setNegativeButton("Cancel", null)
+                                .show()
+                        }
+                    )
+                    rv.adapter = adapter
+                }
+
                 adapter.submitList(list.games)
 
-                // Mostrar botones de edición solo si es mi lista
-                val isMine = list.idUser == session.getUserId()
                 view.findViewById<Button>(R.id.btnAddGame).isVisible    = isMine
                 view.findViewById<Button>(R.id.btnDeleteList).isVisible = isMine
             }

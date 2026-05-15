@@ -211,7 +211,9 @@ class UserListAdapter(private val onClick: (UserList) -> Unit) :
 // ─── LIST ITEM ADAPTER ───────────────────────────────────
 // Usado en: ListDetailFragment (juegos dentro de la lista)
 class ListItemAdapter(
-    private val onGameClick: (ListItem) -> Unit
+    private val isOwner: Boolean,
+    private val onGameClick: (ListItem) -> Unit,
+    private val onRemove: (Int) -> Unit
 ) : ListAdapter<ListItem, ListItemAdapter.VH>(DIFF) {
 
     companion object {
@@ -222,10 +224,11 @@ class ListItemAdapter(
     }
 
     class VH(view: View) : RecyclerView.ViewHolder(view) {
-        val imgCover: ImageView  = view.findViewById(R.id.imgCover)
-        val tvTitle: TextView    = view.findViewById(R.id.tvTitle)
-        val tvComment: TextView  = view.findViewById(R.id.tvComment)
-        val tvPosition: TextView = view.findViewById(R.id.tvPosition)
+        val imgCover: ImageView    = view.findViewById(R.id.imgCover)
+        val tvTitle: TextView      = view.findViewById(R.id.tvTitle)
+        val tvComment: TextView    = view.findViewById(R.id.tvComment)
+        val tvPosition: TextView   = view.findViewById(R.id.tvPosition)
+        val btnRemove: ImageButton = view.findViewById(R.id.btnRemove)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, v: Int) = VH(
@@ -239,6 +242,8 @@ class ListItemAdapter(
         holder.tvComment.text  = item.comment ?: ""
         holder.tvPosition.text = holder.itemView.context.getString(R.string.format_hash_number, item.position)
         holder.itemView.setOnClickListener { onGameClick(item) }
+        holder.btnRemove.visibility = if (isOwner) View.VISIBLE else View.GONE
+        holder.btnRemove.setOnClickListener { onRemove(item.idItem) }
     }
 }
 
