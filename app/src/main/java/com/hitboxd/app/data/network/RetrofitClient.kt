@@ -11,11 +11,11 @@ object RetrofitClient {
 
     /**
      * ⚠️ Cambia esta URL según dónde corra tu backend:
-     * - Emulador Android → 10.0.2.2 apunta al localhost de tu PC
-     * - Dispositivo físico → IP local de tu PC en la misma red (ej: 192.168.1.X)
-     * - Producción → URL real de tu servidor
+     * - Emulador Android → http://10.0.2.2:3000/api/
+     * - Dispositivo físico → IP local de tu PC en la misma red (ej: 192.168.1.X/api/)
+     * - Producción → URL real de tu servidor (actualmente activa)
      */
-    const val BASE_URL = "http://10.0.2.2:3000/api/"
+    const val BASE_URL = "https://api-proyecto-production-519c.up.railway.app/api/"
 
     lateinit var cookieJar: PersistentCookieJar
         private set
