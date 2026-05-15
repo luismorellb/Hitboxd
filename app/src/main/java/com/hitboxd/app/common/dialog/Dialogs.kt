@@ -45,9 +45,9 @@ class AuthDialogFragment : DialogFragment() {
         val viewPager = view.findViewById<ViewPager2>(R.id.viewPagerAuth)
         val tabLayout = view.findViewById<TabLayout>(R.id.tabLayoutAuth)
 
-        // Inflar las dos páginas manualmente
-        val loginView    = layoutInflater.inflate(R.layout.dialog_auth_login, null)
-        val registerView = layoutInflater.inflate(R.layout.dialog_auth_register, null)
+        // Inflar las dos páginas correctamente con el parent para que respeten MATCH_PARENT
+        val loginView    = layoutInflater.inflate(R.layout.dialog_auth_login, viewPager, false)
+        val registerView = layoutInflater.inflate(R.layout.dialog_auth_register, viewPager, false)
         val pages        = listOf(loginView, registerView)
 
         // Adapter simple con vistas pre-infladas
