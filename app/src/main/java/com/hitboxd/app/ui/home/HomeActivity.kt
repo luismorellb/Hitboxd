@@ -14,6 +14,9 @@ import com.hitboxd.app.R
 import com.hitboxd.app.data.model.NetworkResult
 import com.hitboxd.app.data.network.AuthEvent
 import com.hitboxd.app.data.network.AuthEventBus
+import com.hitboxd.app.data.network.RetrofitClient
+import com.hitboxd.app.data.network.SocketEvent
+import com.hitboxd.app.data.network.SocketManager
 import com.hitboxd.app.data.repository.NotificationRepository
 import com.hitboxd.app.ui.landing.LandingActivity
 import com.hitboxd.app.utils.NotificationBadgeManager
@@ -40,6 +43,9 @@ class HomeActivity : AppCompatActivity() {
         setupNotificationBadge(bottomNav)
         startNotificationPolling()
         observeAuthEvents()
+        setupSocket()
+
+        SocketManager.connect(RetrofitClient.cookieJar)
     }
 
     private fun setupNotificationBadge(bottomNav: BottomNavigationView) {
@@ -70,18 +76,42 @@ class HomeActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 AuthEventBus.events.collect { event ->
-                    if (event is AuthEvent.LoggedOut) {
-                        SessionManager(this@HomeActivity).clear()
-                        startActivity(
-                            Intent(this@HomeActivity, LandingActivity::class.java).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            }
-                        )
-                        finish()
+                    when (event) {
+                        is AuthEvent.LoggedOut -> {
+                            SocketManager.disconnect()
+                            SessionManager(this@HomeActivity).clear()
+                            startActivity(
+                                Intent(this@HomeActivity, LandingActivity::class.java).apply {
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                }
+                            )
+                            finish()
+                        }
+                        is AuthEvent.SessionRefreshed -> {
+                            SocketManager.disconnect()
+                            SocketManager.connect(RetrofitClient.cookieJar)
+                        }
                     }
                 }
             }
         }
+    }
+
+    private fun setupSocket() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                SocketManager.events.collect { event ->
+                    if (event is SocketEvent.UnreadCount) {
+                        NotificationBadgeManager.set(event.count)
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        SocketManager.disconnect()
+        super.onDestroy()
     }
 
     override fun onSupportNavigateUp(): Boolean =

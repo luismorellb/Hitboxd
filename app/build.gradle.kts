@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.coroutines.android)
     implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.security.crypto)
+    implementation(libs.socket.io.client) { exclude(group = "org.json", module = "json") }
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

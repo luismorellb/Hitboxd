@@ -34,6 +34,19 @@
             android:visibility="gone"/>
     </LinearLayout>
 
+    <!-- Offline banner: shown 30s after socket disconnect -->
+    <TextView
+        android:id="@+id/tvOfflineBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/notif_offline_banner"
+        android:textColor="@color/text_main"
+        android:textSize="12sp"
+        android:gravity="center"
+        android:paddingVertical="6dp"
+        android:background="@color/brand_yellow"
+        android:visibility="gone"/>
+
     <!-- Content area -->
     <FrameLayout
         android:layout_width="match_parent"

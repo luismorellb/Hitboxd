@@ -66,6 +66,7 @@
     <string name="notifications_title">Notifications</string>
     <string name="action_mark_all_read">Mark all read</string>
     <string name="notif_empty">No notifications yet</string>
+    <string name="notif_offline_banner">Sin conexion en tiempo real (usando polling)</string>
 
     <!-- Errors -->
     <string name="error_generic">Something went wrong. Try again.</string>

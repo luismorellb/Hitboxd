@@ -8,8 +8,10 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,10 +22,17 @@ import com.hitboxd.app.R
 import com.hitboxd.app.common.adapter.NotificationAdapter
 import com.hitboxd.app.data.model.NetworkResult
 import com.hitboxd.app.data.model.Notification
+import com.hitboxd.app.data.network.SocketEvent
+import com.hitboxd.app.data.network.SocketManager
 import com.hitboxd.app.data.repository.NotificationRepository
 import com.hitboxd.app.utils.NotificationBadgeManager
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+
+private const val MAX_LIST_SIZE = 30
 
 // ─── VIEWMODEL ───────────────────────────────────────────
 class NotificationsViewModel : ViewModel() {
@@ -70,22 +79,53 @@ class NotificationsViewModel : ViewModel() {
         NotificationBadgeManager.set(newCount)
         viewModelScope.launch { notificationRepo.markOneRead(id) }
     }
+
+    // ── Socket-driven mutations (no API calls) ────────────
+    fun prependNotification(notif: Notification) {
+        val updated = (listOf(notif) + _notifications.value).take(MAX_LIST_SIZE)
+        _notifications.value = updated
+        val newCount = _unreadCount.value + 1
+        _unreadCount.value = newCount
+        NotificationBadgeManager.set(newCount)
+    }
+
+    fun applyUnreadCount(count: Int) {
+        _unreadCount.value = count
+        NotificationBadgeManager.set(count)
+    }
+
+    fun applyReadAll() {
+        _notifications.value = _notifications.value.map { it.copy(isRead = true) }
+        _unreadCount.value = 0
+        NotificationBadgeManager.set(0)
+    }
+
+    fun applyReadOne(id: Int) {
+        _notifications.value = _notifications.value.map {
+            if (it.idNotification == id) it.copy(isRead = true) else it
+        }
+        val newCount = (_unreadCount.value - 1).coerceAtLeast(0)
+        _unreadCount.value = newCount
+        NotificationBadgeManager.set(newCount)
+    }
 }
 
 // ─── FRAGMENT ────────────────────────────────────────────
 class NotificationsFragment : Fragment() {
 
     private val vm: NotificationsViewModel by viewModels()
+    private var offlineBannerJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View = inflater.inflate(R.layout.fragment_notifications, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val rvNotifications  = view.findViewById<RecyclerView>(R.id.rvNotifications)
-        val swipeRefresh     = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
-        val btnMarkAllRead   = view.findViewById<Button>(R.id.btnMarkAllRead)
-        val tvEmpty          = view.findViewById<TextView>(R.id.tvEmpty)
+        val rvNotifications = view.findViewById<RecyclerView>(R.id.rvNotifications)
+        val swipeRefresh    = view.findViewById<SwipeRefreshLayout>(R.id.swipeRefresh)
+        val btnMarkAllRead  = view.findViewById<Button>(R.id.btnMarkAllRead)
+        val tvEmpty         = view.findViewById<TextView>(R.id.tvEmpty)
+        val tvOfflineBanner = view.findViewById<TextView>(R.id.tvOfflineBanner)
 
         val adapter = NotificationAdapter { notif ->
             vm.markOneRead(notif.idNotification)
@@ -105,7 +145,6 @@ class NotificationsFragment : Fragment() {
         rvNotifications.adapter = adapter
 
         swipeRefresh.setOnRefreshListener { vm.load() }
-
         btnMarkAllRead.setOnClickListener { vm.markAllRead() }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -127,11 +166,65 @@ class NotificationsFragment : Fragment() {
             }
         }
 
+        observeSocketEvents(tvOfflineBanner)
+        startPollingFallback()
+
         vm.load()
+    }
+
+    private fun observeSocketEvents(tvOfflineBanner: TextView) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                SocketManager.events.collect { event ->
+                    when (event) {
+                        is SocketEvent.NotificationNew -> vm.prependNotification(event.notification)
+                        is SocketEvent.UnreadCount     -> vm.applyUnreadCount(event.count)
+                        is SocketEvent.ReadAll         -> vm.applyReadAll()
+                        is SocketEvent.ReadOne         -> vm.applyReadOne(event.id)
+                        is SocketEvent.Connected       -> {
+                            offlineBannerJob?.cancel()
+                            offlineBannerJob = null
+                            tvOfflineBanner.isVisible = false
+                        }
+                        is SocketEvent.Disconnected    -> {
+                            offlineBannerJob?.cancel()
+                            offlineBannerJob = viewLifecycleOwner.lifecycleScope.launch {
+                                delay(30_000)
+                                tvOfflineBanner.isVisible = true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun startPollingFallback() {
+        var lastPollMs = 0L
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (isActive) {
+                    delay(5_000)
+                    if (!SocketManager.isConnected) {
+                        val now = System.currentTimeMillis()
+                        if (now - lastPollMs >= 60_000) {
+                            lastPollMs = now
+                            vm.load()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
         vm.markAllRead()
+    }
+
+    override fun onDestroyView() {
+        offlineBannerJob?.cancel()
+        offlineBannerJob = null
+        super.onDestroyView()
     }
 }
