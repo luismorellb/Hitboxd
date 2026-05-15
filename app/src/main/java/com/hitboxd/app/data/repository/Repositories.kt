@@ -83,6 +83,16 @@ class UserRepository {
 
     suspend fun activateUser() =
         safeCall { api.activateUser() }
+
+    suspend fun getAllUsersAdmin(
+        query: String? = null,
+        page: Int = 1,
+        limit: Int = 20,
+        includeBanned: Boolean = true
+    ) = safeCall { api.getAllUsersAdmin(query, page, limit, includeBanned) }
+
+    suspend fun banUser(userId: Int) = safeCall { api.banUser(userId) }
+    suspend fun unbanUser(userId: Int) = safeCall { api.unbanUser(userId) }
 }
 
 // ─── GAME REPOSITORY ─────────────────────────────────────

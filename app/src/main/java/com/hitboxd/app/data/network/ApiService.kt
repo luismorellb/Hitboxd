@@ -45,6 +45,20 @@ interface ApiService {
     @PUT("users/active")
     suspend fun activateUser(): Response<MessageResponse>
 
+    @GET("users/admin/all")
+    suspend fun getAllUsersAdmin(
+        @Query("q") query: String? = null,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20,
+        @Query("includeBanned") includeBanned: Boolean = true
+    ): Response<AdminUsersResponse>
+
+    @PUT("users/admin/{id}/ban")
+    suspend fun banUser(@Path("id") userId: Int): Response<MessageResponse>
+
+    @PUT("users/admin/{id}/unban")
+    suspend fun unbanUser(@Path("id") userId: Int): Response<MessageResponse>
+
     @GET("users/suggestions")
     suspend fun getSuggestions(@Query("limit") limit: Int = 6): Response<List<User>>
 

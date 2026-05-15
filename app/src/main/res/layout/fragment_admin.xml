@@ -198,6 +198,59 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- User management section -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/admin_section_users"
+                android:textStyle="bold"
+                android:textColor="@color/text_main"
+                android:layout_marginBottom="8dp"/>
+
+            <SearchView
+                android:id="@+id/searchUsers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:queryHint="@string/admin_search_users_hint"
+                android:iconifiedByDefault="false"
+                android:layout_marginBottom="8dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvUsers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="24dp">
+
+                <Button
+                    android:id="@+id/btnPrevPage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/admin_btn_prev"/>
+
+                <TextView
+                    android:id="@+id/tvPageIndicator"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"/>
+
+                <Button
+                    android:id="@+id/btnNextPage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/admin_btn_next"/>
+            </LinearLayout>
+
             <!-- Reported reviews section -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -235,8 +288,6 @@
                 android:textStyle="bold"
                 android:textColor="@color/text_main"
                 android:layout_marginBottom="8dp"/>
-
-            <!-- TODO: Endpoint admin no disponible aun — tabla de usuarios y log de moderacion -->
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvGames"

@@ -17,6 +17,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.hitboxd.app.R
 import com.hitboxd.app.common.adapter.AdminGamesAdapter
+import com.hitboxd.app.common.adapter.AdminUserAdapter
 import com.hitboxd.app.common.adapter.ReportedReviewAdapter
 import com.hitboxd.app.common.dialog.ReviewDetailDialogFragment
 import com.hitboxd.app.data.model.*
@@ -24,6 +25,8 @@ import com.hitboxd.app.data.repository.GameRepository
 import com.hitboxd.app.data.repository.ReviewRepository
 import com.hitboxd.app.data.repository.UserRepository
 import com.hitboxd.app.utils.SessionManager
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -52,6 +55,69 @@ class AdminViewModel : ViewModel() {
     private val _toast = MutableSharedFlow<Pair<String, Boolean>>()
     val toast: SharedFlow<Pair<String, Boolean>> = _toast
 
+    private val _users = MutableStateFlow<List<User>>(emptyList())
+    val users: StateFlow<List<User>> = _users
+
+    private val _userPage = MutableStateFlow(1)
+    val userPage: StateFlow<Int> = _userPage
+
+    private val _userTotalPages = MutableStateFlow(1)
+    val userTotalPages: StateFlow<Int> = _userTotalPages
+
+    private val _userQuery = MutableStateFlow("")
+
+    fun loadUsers() {
+        viewModelScope.launch {
+            when (val r = userRepo.getAllUsersAdmin(
+                query = _userQuery.value.ifBlank { null },
+                page  = _userPage.value,
+                limit = 20
+            )) {
+                is NetworkResult.Success -> {
+                    _users.value = r.data.users
+                    _userTotalPages.value =
+                        ((r.data.total + r.data.limit - 1) / r.data.limit).coerceAtLeast(1)
+                }
+                else -> {}
+            }
+        }
+    }
+
+    fun setQuery(q: String) {
+        _userQuery.value = q
+        _userPage.value  = 1
+        loadUsers()
+    }
+
+    fun nextPage() {
+        if (_userPage.value < _userTotalPages.value) {
+            _userPage.value += 1
+            loadUsers()
+        }
+    }
+
+    fun prevPage() {
+        if (_userPage.value > 1) {
+            _userPage.value -= 1
+            loadUsers()
+        }
+    }
+
+    fun toggleBanUser(user: User) {
+        viewModelScope.launch {
+            val result = if (user.isVisible) userRepo.banUser(user.idUser)
+                         else userRepo.unbanUser(user.idUser)
+            when (result) {
+                is NetworkResult.Success -> {
+                    loadUsers()
+                    _toast.emit((if (user.isVisible) "User banned" else "User unbanned") to false)
+                }
+                is NetworkResult.Error -> _toast.emit("Error: ${result.message}" to true)
+                else -> {}
+            }
+        }
+    }
+
     fun loadAll() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -79,6 +145,7 @@ class AdminViewModel : ViewModel() {
                     else -> {}
                 }
             }
+            launch { loadUsers() }
             _isLoading.value = false
         }
     }
@@ -115,6 +182,7 @@ class AdminFragment : Fragment() {
 
     private val vm: AdminViewModel by viewModels()
     private lateinit var session: SessionManager
+    private var searchJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -131,11 +199,63 @@ class AdminFragment : Fragment() {
             return
         }
 
+        setupUsersRecycler(view)
         setupGamesRecycler(view)
         setupReportedRecycler(view)
         observeVm(view)
 
         vm.loadAll()
+    }
+
+    private fun setupUsersRecycler(view: View) {
+        val adapter = AdminUserAdapter { user ->
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle(getString(if (user.isVisible) R.string.admin_btn_ban else R.string.admin_btn_unban))
+                .setMessage(buildString {
+                    append(if (user.isVisible) getString(R.string.admin_btn_ban) else getString(R.string.admin_btn_unban))
+                    append(" ")
+                    append(user.username)
+                    append("?")
+                })
+                .setPositiveButton(R.string.save) { _, _ -> vm.toggleBanUser(user) }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+
+        view.findViewById<RecyclerView>(R.id.rvUsers).apply {
+            layoutManager = LinearLayoutManager(context)
+            this.adapter  = adapter
+        }
+
+        view.findViewById<SearchView>(R.id.searchUsers)
+            .setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?) = false
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    searchJob?.cancel()
+                    searchJob = viewLifecycleOwner.lifecycleScope.launch {
+                        delay(400)
+                        vm.setQuery(newText.orEmpty())
+                    }
+                    return true
+                }
+            })
+
+        view.findViewById<Button>(R.id.btnPrevPage).setOnClickListener { vm.prevPage() }
+        view.findViewById<Button>(R.id.btnNextPage).setOnClickListener { vm.nextPage() }
+
+        val tvPage = view.findViewById<TextView>(R.id.tvPageIndicator)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.users.collect { adapter.submitList(it) }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            combine(vm.userPage, vm.userTotalPages) { page, total -> page to total }
+                .collect { (page, total) ->
+                    tvPage.text = getString(R.string.admin_page_indicator, page, total)
+                    view.findViewById<Button>(R.id.btnPrevPage).isEnabled = page > 1
+                    view.findViewById<Button>(R.id.btnNextPage).isEnabled = page < total
+                }
+        }
     }
 
     private fun setupGamesRecycler(view: View) {

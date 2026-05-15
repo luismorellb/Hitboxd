@@ -160,6 +160,13 @@ data class ListRequest(
     @SerializedName("list_type") val listType: String = "collection"
 )
 
+data class AdminUsersResponse(
+    val users: List<User> = emptyList(),
+    val total: Int = 0,
+    val page: Int = 1,
+    val limit: Int = 20
+)
+
 data class AddGameToListRequest(
     val gameId: Int,
     val comment: String? = null

@@ -567,3 +567,42 @@ class NotificationAdapter(private val onClick: (Notification) -> Unit) :
         holder.itemView.setOnClickListener { onClick(notif) }
     }
 }
+
+// ─── ADMIN USER ADAPTER ──────────────────────────────────
+// Usado en: AdminFragment (tabla de usuarios con ban/unban)
+class AdminUserAdapter(
+    private val onToggleBan: (User) -> Unit
+) : ListAdapter<User, AdminUserAdapter.VH>(DIFF) {
+
+    companion object {
+        private val DIFF = object : DiffUtil.ItemCallback<User>() {
+            override fun areItemsTheSame(a: User, b: User) = a.idUser == b.idUser
+            override fun areContentsTheSame(a: User, b: User) = a == b
+        }
+    }
+
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
+        val imgAvatar: ImageView  = view.findViewById(R.id.imgAvatar)
+        val tvUsername: TextView  = view.findViewById(R.id.tvUsername)
+        val tvEmail: TextView     = view.findViewById(R.id.tvEmail)
+        val tvBanned: TextView    = view.findViewById(R.id.tvBanned)
+        val btnToggle: Button     = view.findViewById(R.id.btnToggleBan)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(
+        LayoutInflater.from(parent.context).inflate(R.layout.item_admin_user, parent, false)
+    )
+
+    override fun onBindViewHolder(holder: VH, position: Int) {
+        val u = getItem(position)
+        ImageUtils.loadAvatar(holder.itemView.context, u.avatarUrl, holder.imgAvatar)
+        holder.tvUsername.text = u.username
+        holder.tvEmail.text    = u.email
+        val isBanned = !u.isVisible
+        holder.tvBanned.visibility = if (isBanned) View.VISIBLE else View.GONE
+        holder.btnToggle.text = holder.itemView.context.getString(
+            if (isBanned) R.string.admin_btn_unban else R.string.admin_btn_ban
+        )
+        holder.btnToggle.setOnClickListener { onToggleBan(u) }
+    }
+}

@@ -45,6 +45,14 @@
 
     <!-- Admin -->
     <string name="admin_dashboard">Admin Dashboard</string>
+    <string name="admin_section_users">User Management</string>
+    <string name="admin_search_users_hint">Search users&#8230;</string>
+    <string name="admin_user_banned">BANNED</string>
+    <string name="admin_btn_ban">Ban</string>
+    <string name="admin_btn_unban">Unban</string>
+    <string name="admin_page_indicator">Page %1$d of %2$d</string>
+    <string name="admin_btn_prev">Prev</string>
+    <string name="admin_btn_next">Next</string>
     <string name="access_denied">Access denied. Admin only.</string>
     <string name="pending_reports">Pending Reports</string>
     <string name="section_game_catalog">Game Catalog</string>
