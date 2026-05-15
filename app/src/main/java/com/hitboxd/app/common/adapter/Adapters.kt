@@ -12,6 +12,7 @@ import com.hitboxd.app.data.model.*
 import com.hitboxd.app.utils.DateUtils
 import com.hitboxd.app.utils.ImageUtils
 import com.hitboxd.app.utils.StatusUtils
+import com.hitboxd.app.utils.TimeAgo
 
 // ─── GAME CARD ───────────────────────────────────────────
 // Usado en: HomeFeed (3 carruseles), Catalog, LandingPage, Profile tabs
@@ -489,5 +490,53 @@ class UserSuggestionAdapter(
         holder.btnFollow.isSelected          = item.isFollowing
         holder.btnFollow.setOnClickListener  { onFollow(item) }
         holder.itemView.setOnClickListener   { onClick(item) }
+    }
+}
+
+// ─── NOTIFICATION ADAPTER ────────────────────────────────
+// Usado en: NotificationsFragment
+class NotificationAdapter(private val onClick: (Notification) -> Unit) :
+    ListAdapter<Notification, NotificationAdapter.VH>(DIFF) {
+
+    companion object {
+        private val DIFF = object : DiffUtil.ItemCallback<Notification>() {
+            override fun areItemsTheSame(a: Notification, b: Notification) =
+                a.idNotification == b.idNotification
+            override fun areContentsTheSame(a: Notification, b: Notification) = a == b
+        }
+    }
+
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
+        val imgAvatar: ImageView = view.findViewById(R.id.imgAvatar)
+        val tvActor: TextView    = view.findViewById(R.id.tvActor)
+        val tvEvent: TextView    = view.findViewById(R.id.tvEvent)
+        val tvTime: TextView     = view.findViewById(R.id.tvTime)
+        val dotUnread: View      = view.findViewById(R.id.dotUnread)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(
+        LayoutInflater.from(parent.context).inflate(R.layout.item_notification, parent, false)
+    )
+
+    override fun onBindViewHolder(holder: VH, position: Int) {
+        val notif = getItem(position)
+
+        ImageUtils.loadAvatar(holder.itemView.context, notif.actorAvatar, holder.imgAvatar)
+        holder.tvActor.text = notif.actorUsername
+        holder.tvEvent.text = when (notif.type) {
+            "follow"      -> "started following you"
+            "review_like" -> "liked your review"
+            else          -> notif.type
+        }
+        holder.tvTime.text = TimeAgo.format(notif.createdAt)
+        holder.dotUnread.visibility = if (notif.isRead) View.GONE else View.VISIBLE
+
+        holder.itemView.setBackgroundColor(
+            holder.itemView.context.getColor(
+                if (notif.isRead) R.color.bg_card else R.color.notif_unread_bg
+            )
+        )
+
+        holder.itemView.setOnClickListener { onClick(notif) }
     }
 }

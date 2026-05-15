@@ -144,4 +144,17 @@
             app:destination="@id/gameDetailFragment" />
     </fragment>
 
+    <fragment
+        android:id="@+id/notificationsFragment"
+        android:name="com.hitboxd.app.ui.notifications.NotificationsFragment"
+        android:label="Notifications"
+        tools:layout="@layout/fragment_notifications">
+        <action
+            android:id="@+id/action_notificationsFragment_to_publicProfileFragment"
+            app:destination="@id/publicProfileFragment" />
+        <action
+            android:id="@+id/action_notificationsFragment_to_gameDetailFragment"
+            app:destination="@id/gameDetailFragment" />
+    </fragment>
+
 </navigation>

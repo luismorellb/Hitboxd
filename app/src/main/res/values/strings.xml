@@ -6,6 +6,7 @@
     <string name="nav_home">Home</string>
     <string name="nav_catalog">Catalog</string>
     <string name="nav_tracker">Tracker</string>
+    <string name="nav_notifications">Notifs</string>
     <string name="nav_profile">Profile</string>
 
     <!-- Auth -->
@@ -62,6 +63,9 @@
     <string name="label_content">Content</string>
     <string name="label_report_reasons">Report reasons</string>
     <string name="action_close">Close</string>
+    <string name="notifications_title">Notifications</string>
+    <string name="action_mark_all_read">Mark all read</string>
+    <string name="notif_empty">No notifications yet</string>
 
     <!-- Errors -->
     <string name="error_generic">Something went wrong. Try again.</string>

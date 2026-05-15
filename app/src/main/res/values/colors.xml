@@ -19,6 +19,9 @@
     <color name="text_muted">#999999</color>
     <color name="text_white">#FFFFFF</color>
 
+    <!-- Notifications -->
+    <color name="notif_unread_bg">#F0F9FF</color>
+
     <!-- UI elementos -->
     <color name="divider">#E0E0E0</color>
     <color name="star_empty">#C9C9C9</color>
