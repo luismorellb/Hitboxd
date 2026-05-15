@@ -139,6 +139,9 @@ interface ApiService {
     @GET("reviews/user/{userId}")
     suspend fun getUserReviews(@Path("userId") userId: Int): Response<List<Review>>
 
+    @GET("reviews/{reviewId}/game-slug")
+    suspend fun getReviewGameSlug(@Path("reviewId") reviewId: Int): Response<GameSlugResponse>
+
     @DELETE("reviews/{reviewId}")
     suspend fun removeReview(@Path("reviewId") reviewId: Int): Response<MessageResponse>
 

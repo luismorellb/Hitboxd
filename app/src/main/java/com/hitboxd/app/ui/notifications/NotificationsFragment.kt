@@ -20,11 +20,13 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.snackbar.Snackbar
 import com.hitboxd.app.R
 import com.hitboxd.app.common.adapter.NotificationAdapter
+import com.hitboxd.app.data.model.GameSlugResponse
 import com.hitboxd.app.data.model.NetworkResult
 import com.hitboxd.app.data.model.Notification
 import com.hitboxd.app.data.network.SocketEvent
 import com.hitboxd.app.data.network.SocketManager
 import com.hitboxd.app.data.repository.NotificationRepository
+import com.hitboxd.app.data.repository.ReviewRepository
 import com.hitboxd.app.utils.NotificationBadgeManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -38,6 +40,7 @@ private const val MAX_LIST_SIZE = 30
 class NotificationsViewModel : ViewModel() {
 
     private val notificationRepo = NotificationRepository()
+    private val reviewRepo = ReviewRepository()
 
     private val _notifications = MutableStateFlow<List<Notification>>(emptyList())
     val notifications: StateFlow<List<Notification>> = _notifications
@@ -100,6 +103,9 @@ class NotificationsViewModel : ViewModel() {
         NotificationBadgeManager.set(0)
     }
 
+    suspend fun resolveReviewSlug(reviewId: Int): NetworkResult<GameSlugResponse> =
+        reviewRepo.getReviewGameSlug(reviewId)
+
     fun applyReadOne(id: Int) {
         _notifications.value = _notifications.value.map {
             if (it.idNotification == id) it.copy(isRead = true) else it
@@ -127,19 +133,7 @@ class NotificationsFragment : Fragment() {
         val tvEmpty         = view.findViewById<TextView>(R.id.tvEmpty)
         val tvOfflineBanner = view.findViewById<TextView>(R.id.tvOfflineBanner)
 
-        val adapter = NotificationAdapter { notif ->
-            vm.markOneRead(notif.idNotification)
-            when (notif.type) {
-                "follow" -> findNavController().navigate(
-                    R.id.action_notificationsFragment_to_publicProfileFragment,
-                    bundleOf("username" to notif.actorUsername)
-                )
-                "review_like" -> {
-                    // TODO: agregar target_slug en response del backend o crear GET /reviews/:id/game-slug
-                    Snackbar.make(view, "Proximamente", Snackbar.LENGTH_SHORT).show()
-                }
-            }
-        }
+        val adapter = NotificationAdapter { notif -> handleNotificationClick(notif) }
 
         rvNotifications.layoutManager = LinearLayoutManager(requireContext())
         rvNotifications.adapter = adapter
@@ -170,6 +164,48 @@ class NotificationsFragment : Fragment() {
         startPollingFallback()
 
         vm.load()
+    }
+
+    private fun handleNotificationClick(notif: Notification) {
+        if (!notif.isRead) vm.markOneRead(notif.idNotification)
+
+        when (notif.type) {
+            "follow" -> {
+                findNavController().navigate(
+                    R.id.action_notificationsFragment_to_publicProfileFragment,
+                    bundleOf("username" to notif.actorUsername)
+                )
+            }
+            "review_like" -> {
+                if (!notif.targetSlug.isNullOrBlank()) {
+                    findNavController().navigate(
+                        R.id.action_notificationsFragment_to_gameDetailFragment,
+                        bundleOf("slug" to notif.targetSlug)
+                    )
+                    return
+                }
+
+                val reviewId = notif.idReference
+                if (reviewId == null) {
+                    Snackbar.make(requireView(), "This review is no longer available", Snackbar.LENGTH_SHORT).show()
+                    return
+                }
+                viewLifecycleOwner.lifecycleScope.launch {
+                    when (val r = vm.resolveReviewSlug(reviewId)) {
+                        is NetworkResult.Success -> {
+                            findNavController().navigate(
+                                R.id.action_notificationsFragment_to_gameDetailFragment,
+                                bundleOf("slug" to r.data.slug)
+                            )
+                        }
+                        is NetworkResult.Error -> {
+                            Snackbar.make(requireView(), "This review is no longer available", Snackbar.LENGTH_SHORT).show()
+                        }
+                        else -> {}
+                    }
+                }
+            }
+        }
     }
 
     private fun observeSocketEvents(tvOfflineBanner: TextView) {

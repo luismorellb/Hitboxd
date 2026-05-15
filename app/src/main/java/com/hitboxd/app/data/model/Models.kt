@@ -190,7 +190,15 @@ data class Notification(
     @SerializedName("is_read")         val isRead: Boolean = false,
     @SerializedName("created_at")      val createdAt: String? = null,
     @SerializedName("actor_username")  val actorUsername: String = "",
-    @SerializedName("actor_avatar")    val actorAvatar: String? = null
+    @SerializedName("actor_avatar")    val actorAvatar: String? = null,
+    @SerializedName("target_slug")     val targetSlug: String? = null
+)
+
+data class GameSlugResponse(
+    @SerializedName("id_review")   val idReview: Int = 0,
+    @SerializedName("id_game")     val idGame: Int = 0,
+    val slug: String = "",
+    @SerializedName("game_title")  val gameTitle: String = ""
 )
 
 data class NotificationsResponse(

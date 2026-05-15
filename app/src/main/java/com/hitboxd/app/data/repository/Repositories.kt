@@ -182,6 +182,9 @@ class ReviewRepository {
     suspend fun approveReview(reviewId: Int) =
         safeCall { api.approveReview(reviewId) }
 
+    suspend fun getReviewGameSlug(reviewId: Int) =
+        safeCall { api.getReviewGameSlug(reviewId) }
+
     suspend fun getRecent(limit: Int = 3) =
         safeCall { api.getRecentReviews(limit) }
 }
