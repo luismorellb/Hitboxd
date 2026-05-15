@@ -25,7 +25,7 @@ class GameCardAdapter(private val onClick: (Game) -> Unit) :
         }
     }
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
         val imgCover: ImageView = view.findViewById(R.id.imgCover)
         val tvTitle: TextView   = view.findViewById(R.id.tvTitle)
     }
@@ -59,7 +59,7 @@ class ReviewAdapter(
         }
     }
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
         val imgAvatar: ImageView      = view.findViewById(R.id.imgAvatar)
         val tvUsername: TextView      = view.findViewById(R.id.tvUsername)
         val tvDate: TextView          = view.findViewById(R.id.tvDate)
@@ -82,7 +82,7 @@ class ReviewAdapter(
         ImageUtils.loadAvatar(holder.itemView.context, review.avatarUrl, holder.imgAvatar)
         holder.tvUsername.text = review.username ?: "User"
         holder.tvDate.text     = DateUtils.format(review.createdAt)
-        holder.tvRating.text   = "★ ${"%.1f".format(review.rating)}"
+        holder.tvRating.text   = holder.itemView.context.getString(R.string.format_star_rating, review.rating)
         holder.tvContent.text  = review.content
 
         // Lógica de spoiler
@@ -123,7 +123,7 @@ class ActivityCardAdapter(private val onClick: (Activity) -> Unit) :
         }
     }
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
         val imgCover: ImageView    = view.findViewById(R.id.imgCover)
         val tvUsername: TextView   = view.findViewById(R.id.tvUsername)
         val tvStatus: TextView     = view.findViewById(R.id.tvStatus)
@@ -154,7 +154,7 @@ class ActivityFeedAdapter :
         }
     }
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
         val imgCover: ImageView    = view.findViewById(R.id.imgCover)
         val tvUsername: TextView   = view.findViewById(R.id.tvUsername)
         val tvGameTitle: TextView  = view.findViewById(R.id.tvGameTitle)
@@ -188,7 +188,7 @@ class UserListAdapter(private val onClick: (UserList) -> Unit) :
         }
     }
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
         val tvTitle: TextView  = view.findViewById(R.id.tvTitle)
         val tvDesc: TextView   = view.findViewById(R.id.tvDescription)
         val tvCount: TextView  = view.findViewById(R.id.tvCount)
@@ -202,7 +202,7 @@ class UserListAdapter(private val onClick: (UserList) -> Unit) :
         val list = getItem(pos)
         holder.tvTitle.text = list.title
         holder.tvDesc.text  = list.description ?: ""
-        holder.tvCount.text = "${list.games.size} games"
+        holder.tvCount.text = holder.itemView.context.getString(R.string.format_games_count, list.games.size)
         holder.itemView.setOnClickListener { onClick(list) }
     }
 }
@@ -220,7 +220,7 @@ class ListItemAdapter(
         }
     }
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
         val imgCover: ImageView  = view.findViewById(R.id.imgCover)
         val tvTitle: TextView    = view.findViewById(R.id.tvTitle)
         val tvComment: TextView  = view.findViewById(R.id.tvComment)
@@ -236,7 +236,7 @@ class ListItemAdapter(
         ImageUtils.loadGameCover(holder.itemView.context, item.coverUrl, holder.imgCover)
         holder.tvTitle.text    = item.title
         holder.tvComment.text  = item.comment ?: ""
-        holder.tvPosition.text = "#${item.position}"
+        holder.tvPosition.text = holder.itemView.context.getString(R.string.format_hash_number, item.position)
         holder.itemView.setOnClickListener { onGameClick(item) }
     }
 }
@@ -255,7 +255,7 @@ class UserNetworkAdapter(
         }
     }
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
         val imgAvatar: ImageView = view.findViewById(R.id.imgAvatar)
         val tvUsername: TextView = view.findViewById(R.id.tvUsername)
         val tvGames: TextView    = view.findViewById(R.id.tvGames)
@@ -270,7 +270,7 @@ class UserNetworkAdapter(
         val user = getItem(pos)
         ImageUtils.loadAvatar(holder.itemView.context, user.avatarUrl, holder.imgAvatar)
         holder.tvUsername.text   = user.username
-        holder.tvGames.text      = "${user.gamesCount} games"
+        holder.tvGames.text      = holder.itemView.context.getString(R.string.format_games_count, user.gamesCount)
         holder.btnFollow.text    = if (user.isFollowing) "Following" else "Follow"
         holder.btnFollow.isSelected = user.isFollowing
         holder.btnFollow.setOnClickListener { onFollow(user) }
@@ -290,7 +290,7 @@ class DiaryAdapter :
         }
     }
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
         val tvDay: TextView    = view.findViewById(R.id.tvDay)
         val tvMonth: TextView  = view.findViewById(R.id.tvMonth)
         val tvYear: TextView   = view.findViewById(R.id.tvYear)
@@ -310,7 +310,7 @@ class DiaryAdapter :
         holder.tvYear.text  = DateUtils.yearOf(review.createdAt)
         ImageUtils.loadGameCover(holder.itemView.context, review.coverUrl, holder.imgCover)
         holder.tvTitle.text  = review.gameTitle ?: ""
-        holder.tvRating.text = "★ ${"%.1f".format(review.rating)}"
+        holder.tvRating.text = holder.itemView.context.getString(R.string.format_star_rating, review.rating)
     }
 }
 
@@ -326,7 +326,7 @@ class MiniReviewAdapter :
         }
     }
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
         val tvGameTitle: TextView = view.findViewById(R.id.tvGameTitle)
         val tvRating: TextView    = view.findViewById(R.id.tvRating)
         val tvContent: TextView   = view.findViewById(R.id.tvContent)
@@ -339,7 +339,7 @@ class MiniReviewAdapter :
     override fun onBindViewHolder(holder: VH, pos: Int) {
         val r = getItem(pos)
         holder.tvGameTitle.text = r.gameTitle ?: "Game"
-        holder.tvRating.text    = "★ ${"%.1f".format(r.rating)}"
+        holder.tvRating.text    = holder.itemView.context.getString(R.string.format_star_rating, r.rating)
         val content = r.content ?: ""
         holder.tvContent.text   = if (content.length > 80) "${content.take(80)}…" else content
     }
@@ -357,7 +357,7 @@ class FullReviewAdapter :
         }
     }
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
         val tvGameTitle: TextView = view.findViewById(R.id.tvGameTitle)
         val tvRating: TextView    = view.findViewById(R.id.tvRating)
         val tvDate: TextView      = view.findViewById(R.id.tvDate)
@@ -371,7 +371,7 @@ class FullReviewAdapter :
     override fun onBindViewHolder(holder: VH, pos: Int) {
         val r = getItem(pos)
         holder.tvGameTitle.text = r.gameTitle ?: "Game"
-        holder.tvRating.text    = "★ ${"%.1f".format(r.rating)}"
+        holder.tvRating.text    = holder.itemView.context.getString(R.string.format_star_rating, r.rating)
         holder.tvDate.text      = DateUtils.format(r.createdAt)
         holder.tvContent.text   = r.content ?: ""
     }
@@ -389,7 +389,7 @@ class AdminGamesAdapter(private val onView: (Game) -> Unit) :
         }
     }
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
         val tvId: TextView        = view.findViewById(R.id.tvId)
         val tvTitle: TextView     = view.findViewById(R.id.tvTitle)
         val tvDeveloper: TextView = view.findViewById(R.id.tvDeveloper)
@@ -402,7 +402,7 @@ class AdminGamesAdapter(private val onView: (Game) -> Unit) :
 
     override fun onBindViewHolder(holder: VH, pos: Int) {
         val game = getItem(pos)
-        holder.tvId.text        = "#${game.idGame}"
+        holder.tvId.text        = holder.itemView.context.getString(R.string.format_hash_number, game.idGame)
         holder.tvTitle.text     = game.title
         holder.tvDeveloper.text = game.developer ?: "Unknown"
         holder.btnView.setOnClickListener { onView(game) }
@@ -424,7 +424,7 @@ class ReportedReviewAdapter(
         }
     }
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
         val tvUsername: TextView = view.findViewById(R.id.tvUsername)
         val tvGame: TextView     = view.findViewById(R.id.tvGame)
         val tvReports: TextView  = view.findViewById(R.id.tvReports)
@@ -442,10 +442,50 @@ class ReportedReviewAdapter(
         val r = getItem(pos)
         holder.tvUsername.text = r.username ?: "User"
         holder.tvGame.text     = r.gameTitle ?: "Game"
-        holder.tvReports.text  = "${r.reportCount} reports"
+        holder.tvReports.text  = holder.itemView.context.getString(R.string.format_reports_count, r.reportCount)
         holder.tvReasons.text  = r.allReasons ?: ""
         holder.btnView.setOnClickListener   { onView(r) }
         holder.btnDelete.setOnClickListener { onDelete(r) }
         holder.btnApprove.setOnClickListener{ onApprove(r) }
+    }
+}
+
+// ─── USER SUGGESTION ADAPTER ─────────────────────────────
+// Usado en: HomeFeedFragment "People to follow"
+class UserSuggestionAdapter(
+    private val onClick: (SuggestionItem) -> Unit,
+    private val onFollow: (SuggestionItem) -> Unit
+) : ListAdapter<SuggestionItem, UserSuggestionAdapter.VH>(DIFF) {
+
+    companion object {
+        private val DIFF = object : DiffUtil.ItemCallback<SuggestionItem>() {
+            override fun areItemsTheSame(a: SuggestionItem, b: SuggestionItem) =
+                a.user.idUser == b.user.idUser
+            override fun areContentsTheSame(a: SuggestionItem, b: SuggestionItem) = a == b
+        }
+    }
+
+    class VH(view: View) : RecyclerView.ViewHolder(view) {
+        val imgAvatar: ImageView = view.findViewById(R.id.imgAvatar)
+        val tvUsername: TextView = view.findViewById(R.id.tvUsername)
+        val tvBio: TextView      = view.findViewById(R.id.tvBio)
+        val btnFollow: Button    = view.findViewById(R.id.btnFollow)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = VH(
+        LayoutInflater.from(parent.context).inflate(R.layout.item_user_suggestion, parent, false)
+    )
+
+    override fun onBindViewHolder(holder: VH, position: Int) {
+        val item = getItem(position)
+        ImageUtils.loadAvatar(holder.itemView.context, item.user.avatarUrl, holder.imgAvatar)
+        holder.tvUsername.text = item.user.username
+        holder.tvBio.text      = item.user.bio ?: ""
+        holder.btnFollow.text  = holder.itemView.context.getString(
+            if (item.isFollowing) R.string.following else R.string.follow
+        )
+        holder.btnFollow.isSelected          = item.isFollowing
+        holder.btnFollow.setOnClickListener  { onFollow(item) }
+        holder.itemView.setOnClickListener   { onClick(item) }
     }
 }

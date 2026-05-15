@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_homeFeedFragment_to_gameDetailFragment"
             app:destination="@id/gameDetailFragment" />
+        <action
+            android:id="@+id/action_homeFeedFragment_to_publicProfileFragment"
+            app:destination="@id/publicProfileFragment" />
     </fragment>
 
     <fragment

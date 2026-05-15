@@ -234,6 +234,9 @@ data class GameStatsResponse(
     @SerializedName("status_distribution") val statusDistribution: List<StatusDistributionEntry> = emptyList()
 )
 
+// ─── UI STATE ────────────────────────────────────────────
+data class SuggestionItem(val user: User, val isFollowing: Boolean = false)
+
 // ─── NETWORK RESULT ──────────────────────────────────────
 sealed class NetworkResult<out T> {
     data class Success<T>(val data: T) : NetworkResult<T>()

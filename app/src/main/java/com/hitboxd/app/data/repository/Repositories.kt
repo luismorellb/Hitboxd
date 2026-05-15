@@ -1,3 +1,4 @@
+@file:Suppress("unused")
 package com.hitboxd.app.data.repository
 
 import com.hitboxd.app.data.model.*
@@ -95,8 +96,8 @@ class GameRepository {
     suspend fun searchGames(query: String) =
         safeCall { api.searchGames(query) }
 
-    suspend fun getPopular() =
-        safeCall { api.getPopularGames() }
+    suspend fun getPopular(genre: String? = null, limit: Int = 20) =
+        safeCall { api.getPopularGames(limit, genre) }
 
     suspend fun getRandom() =
         safeCall { api.getRandomGame() }

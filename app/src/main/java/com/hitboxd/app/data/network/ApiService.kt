@@ -71,7 +71,10 @@ interface ApiService {
     suspend fun searchGames(@Query("q") query: String): Response<List<Game>>
 
     @GET("games/popular")
-    suspend fun getPopularGames(): Response<List<Game>>
+    suspend fun getPopularGames(
+        @Query("limit") limit: Int = 20,
+        @Query("genre") genre: String? = null
+    ): Response<List<Game>>
 
     @GET("games/random")
     suspend fun getRandomGame(): Response<Game>
