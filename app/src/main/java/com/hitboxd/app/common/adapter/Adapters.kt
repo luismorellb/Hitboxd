@@ -454,7 +454,8 @@ class ReportedReviewAdapter(
 // Usado en: HomeFeedFragment "People to follow"
 class UserSuggestionAdapter(
     private val onClick: (SuggestionItem) -> Unit,
-    private val onFollow: (SuggestionItem) -> Unit
+    private val onFollow: (SuggestionItem) -> Unit,
+    private val showFollowButton: Boolean = true
 ) : ListAdapter<SuggestionItem, UserSuggestionAdapter.VH>(DIFF) {
 
     companion object {
@@ -484,6 +485,7 @@ class UserSuggestionAdapter(
         holder.btnFollow.text  = holder.itemView.context.getString(
             if (item.isFollowing) R.string.following else R.string.follow
         )
+        holder.btnFollow.visibility          = if (showFollowButton) View.VISIBLE else View.GONE
         holder.btnFollow.isSelected          = item.isFollowing
         holder.btnFollow.setOnClickListener  { onFollow(item) }
         holder.itemView.setOnClickListener   { onClick(item) }

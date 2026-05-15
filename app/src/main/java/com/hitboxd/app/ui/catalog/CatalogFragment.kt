@@ -3,6 +3,7 @@ package com.hitboxd.app.ui.catalog
 import android.os.Bundle
 import android.text.*
 import android.view.*
+import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
@@ -95,17 +96,33 @@ class CatalogFragment : Fragment() {
         horizontal(R.id.rvPopular,  popularAdapter)
         horizontal(R.id.rvNew,      newAdapter)
 
-        view.findViewById<RecyclerView>(R.id.rvSearchResults).apply {
-            layoutManager = GridLayoutManager(context, 3)
-            adapter       = searchAdapter
+        val rvSearchResults = view.findViewById<RecyclerView>(R.id.rvSearchResults).also { rv ->
+            rv.layoutManager = GridLayoutManager(context, 3)
+            rv.adapter       = searchAdapter
         }
 
-        // Búsqueda con debounce
-        view.findViewById<EditText>(R.id.etSearch).addTextChangedListener(object : TextWatcher {
+        val etSearch = view.findViewById<EditText>(R.id.etSearch)
+
+        // Inline preview while typing (debounced)
+        etSearch.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) { vm.onSearchQuery(s.toString()) }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
+
+        // Navigate to full search screen on IME search action
+        etSearch.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                val q = vm.query.value.trim()
+                if (q.isNotBlank()) {
+                    findNavController().navigate(
+                        R.id.action_catalogFragment_to_searchResultsFragment,
+                        bundleOf("query" to q)
+                    )
+                }
+                true
+            } else false
+        }
 
         // Observar
         viewLifecycleOwner.lifecycleScope.launch { vm.trending.collect    { trendingAdapter.submitList(it) } }
@@ -113,13 +130,12 @@ class CatalogFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch { vm.newReleases.collect { newAdapter.submitList(it) } }
 
         val defaultSections = view.findViewById<View>(R.id.defaultSections)
-        val searchSection   = view.findViewById<View>(R.id.searchSection)
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.searchResults.collect { results ->
                 val hasQuery = vm.query.value.isNotBlank()
                 defaultSections.isVisible = !hasQuery
-                searchSection.isVisible   = hasQuery
+                rvSearchResults.isVisible = hasQuery
                 searchAdapter.submitList(results)
             }
         }

@@ -16,6 +16,9 @@
         <action
             android:id="@+id/action_homeFeedFragment_to_publicProfileFragment"
             app:destination="@id/publicProfileFragment" />
+        <action
+            android:id="@+id/action_homeFeedFragment_to_searchResultsFragment"
+            app:destination="@id/searchResultsFragment" />
     </fragment>
 
     <fragment
@@ -44,6 +47,24 @@
         <action
             android:id="@+id/action_catalogFragment_to_gameDetailFragment"
             app:destination="@id/gameDetailFragment" />
+        <action
+            android:id="@+id/action_catalogFragment_to_searchResultsFragment"
+            app:destination="@id/searchResultsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/searchResultsFragment"
+        android:name="com.hitboxd.app.ui.search.SearchResultsFragment"
+        android:label="Search">
+        <argument
+            android:name="query"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_searchResultsFragment_to_gameDetailFragment"
+            app:destination="@id/gameDetailFragment" />
+        <action
+            android:id="@+id/action_searchResultsFragment_to_publicProfileFragment"
+            app:destination="@id/publicProfileFragment" />
     </fragment>
 
     <fragment

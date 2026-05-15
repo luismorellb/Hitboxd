@@ -94,4 +94,13 @@
     <string name="format_hash_number">#%d</string>
     <string name="format_reports_count">%d reports</string>
     <string name="format_content_truncated">%s…</string>
+
+    <!-- Search results -->
+    <string name="search_results_title">Results for: %s</string>
+    <string name="tab_games">Games</string>
+    <string name="tab_users">Users</string>
+    <string name="tab_games_count">Games (%d)</string>
+    <string name="tab_users_count">Users (%d)</string>
+    <string name="search_empty_games">No games found for \"%s\"</string>
+    <string name="search_empty_users">No users found for \"%s\"</string>
 </resources>
