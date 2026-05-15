@@ -6,13 +6,13 @@ import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.hitboxd.app.R
 import androidx.recyclerview.widget.RecyclerView
+import com.hitboxd.app.data.model.Review
+import com.hitboxd.app.utils.DateUtils
 
 // ─── AUTH DIALOG ─────────────────────────────────────────
 // Contiene 2 tabs: Sign In (usa username, NO email) y Create Account
@@ -281,5 +281,63 @@ class ConfirmDeleteDialogFragment(
             .setPositiveButton(confirmText) { _, _ -> onConfirm() }
             .setNegativeButton("Cancelar", null)
             .create()
+    }
+}
+
+// ─── REVIEW DETAIL DIALOG ────────────────────────────────
+// Vista completa de una reseña reportada: contenido, razones, metadatos
+class ReviewDetailDialogFragment : DialogFragment() {
+
+    companion object {
+        private const val ARG_ID      = "idReview"
+        private const val ARG_GAME    = "gameTitle"
+        private const val ARG_USER    = "username"
+        private const val ARG_CONTENT = "content"
+        private const val ARG_DATE    = "createdAt"
+        private const val ARG_COUNT   = "reportCount"
+        private const val ARG_REASONS = "allReasons"
+
+        fun newInstance(review: Review) = ReviewDetailDialogFragment().apply {
+            arguments = Bundle().apply {
+                putInt(ARG_ID,      review.idReview)
+                putString(ARG_GAME,    review.gameTitle ?: "—")
+                putString(ARG_USER,    review.username  ?: "—")
+                putString(ARG_CONTENT, review.content   ?: "—")
+                putString(ARG_DATE,    review.createdAt)
+                putInt(ARG_COUNT,   review.reportCount)
+                putString(ARG_REASONS, review.allReasons ?: "—")
+            }
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View = inflater.inflate(R.layout.dialog_review_detail, container, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val args = requireArguments()
+        view.findViewById<TextView>(R.id.tvDetailReviewId).text =
+            getString(R.string.format_hash_number, args.getInt(ARG_ID))
+        view.findViewById<TextView>(R.id.tvDetailGame).text =
+            args.getString(ARG_GAME)
+        view.findViewById<TextView>(R.id.tvDetailUser).text =
+            args.getString(ARG_USER)
+        view.findViewById<TextView>(R.id.tvDetailDate).text =
+            DateUtils.format(args.getString(ARG_DATE))
+        view.findViewById<TextView>(R.id.tvDetailReportCount).text =
+            args.getInt(ARG_COUNT).toString()
+        view.findViewById<TextView>(R.id.tvDetailContent).text =
+            args.getString(ARG_CONTENT)
+        view.findViewById<TextView>(R.id.tvDetailReasons).text =
+            args.getString(ARG_REASONS)
+        view.findViewById<Button>(R.id.btnClose).setOnClickListener { dismiss() }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
     }
 }

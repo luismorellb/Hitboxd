@@ -45,7 +45,23 @@
     <!-- Admin -->
     <string name="admin_dashboard">Admin Dashboard</string>
     <string name="access_denied">Access denied. Admin only.</string>
-    <string name="pending_reports">Pending reports</string>
+    <string name="pending_reports">Pending Reports</string>
+    <string name="section_game_catalog">Game Catalog</string>
+    <string name="stat_label_cached_games">Cached Games</string>
+    <string name="stat_label_pending_complaints">Pending Complaints</string>
+    <string name="stat_label_total_users">Total Users</string>
+    <string name="stat_label_admin_id">Admin ID</string>
+
+    <!-- Review detail dialog -->
+    <string name="dialog_review_detail_title">Review Detail</string>
+    <string name="label_review_id">Review ID</string>
+    <string name="label_game">Game</string>
+    <string name="label_user">User</string>
+    <string name="label_created_at">Created at</string>
+    <string name="label_reports">Reports</string>
+    <string name="label_content">Content</string>
+    <string name="label_report_reasons">Report reasons</string>
+    <string name="action_close">Close</string>
 
     <!-- Errors -->
     <string name="error_generic">Something went wrong. Try again.</string>
