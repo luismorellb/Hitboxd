@@ -201,6 +201,9 @@ class ListRepository {
     suspend fun addGameToList(listId: Int, gameId: Int, comment: String? = null) =
         safeCall { api.addGameToList(listId, AddGameToListRequest(gameId, comment)) }
 
+    suspend fun reorderItems(listId: Int, items: List<ReorderItem>) =
+        safeCall { api.reorderList(listId, ReorderRequest(items)) }
+
     suspend fun removeItem(listId: Int, itemId: Int) =
         safeCall { api.removeListItem(listId, itemId) }
 

@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -76,6 +77,29 @@ class ListDetailViewModel : ViewModel() {
         }
     }
 
+    fun submitReorder(newOrder: List<ListItem>) {
+        viewModelScope.launch {
+            val items = newOrder.mapIndexed { i, g -> ReorderItem(g.idItem, i + 1) }
+            when (repo.reorderItems(listId, items)) {
+                is NetworkResult.Success -> _toast.emit("Order updated" to false)
+                is NetworkResult.Error   -> {
+                    load(listId)
+                    _toast.emit("Could not save order" to true)
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private fun load(id: Int) {
+        viewModelScope.launch {
+            when (val r = repo.getListDetail(id)) {
+                is NetworkResult.Success -> _listData.value = r.data
+                else -> {}
+            }
+        }
+    }
+
     fun removeItem(itemId: Int) {
         viewModelScope.launch {
             when (val r = repo.removeItem(listId, itemId)) {
@@ -118,6 +142,7 @@ class ListDetailFragment : Fragment() {
 
     private val vm: ListDetailViewModel by viewModels()
     private lateinit var session: SessionManager
+    private var dragOccurred = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -148,11 +173,39 @@ class ListDetailFragment : Fragment() {
             }.show(childFragmentManager, "confirmDelete")
         }
 
-        observeVm(view, rv)
+        val touchHelper = ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                vh: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                val from = vh.bindingAdapterPosition
+                val to = target.bindingAdapterPosition
+                (recyclerView.adapter as? ListItemAdapter)?.moveItem(from, to)
+                dragOccurred = true
+                return true
+            }
+
+            override fun onSwiped(vh: RecyclerView.ViewHolder, direction: Int) {}
+
+            override fun isLongPressDragEnabled() = false
+
+            override fun onSelectedChanged(vh: RecyclerView.ViewHolder?, actionState: Int) {
+                super.onSelectedChanged(vh, actionState)
+                if (actionState == ItemTouchHelper.ACTION_STATE_IDLE && dragOccurred) {
+                    dragOccurred = false
+                    (rv.adapter as? ListItemAdapter)?.let { vm.submitReorder(it.currentList) }
+                }
+            }
+        })
+
+        observeVm(view, rv, touchHelper)
         vm.init(listId)
     }
 
-    private fun observeVm(view: View, rv: RecyclerView) {
+    private fun observeVm(view: View, rv: RecyclerView, touchHelper: ItemTouchHelper) {
         val progressBar = view.findViewById<View>(R.id.progressBar)
         val contentRoot = view.findViewById<View>(R.id.contentRoot)
         var adapter: ListItemAdapter? = null
@@ -169,17 +222,21 @@ class ListDetailFragment : Fragment() {
                 list ?: return@collect
                 view.findViewById<TextView>(R.id.tvListTitle).text = list.title
                 view.findViewById<TextView>(R.id.tvListDescription).text = list.description ?: ""
-                view.findViewById<TextView>(R.id.tvListInfo).text = getString(
-                    R.string.format_list_info,
-                    list.games.size,
-                    list.username ?: getString(R.string.list_owner_you)
-                )
+                view.findViewById<TextView>(R.id.tvListInfo).text = buildString {
+                    append(list.games.size)
+                    append(' ')
+                    append(getString(R.string.list_label_games))
+                    append(" • ")
+                    append(list.username ?: getString(R.string.list_owner_you))
+                }
 
                 val isMine = list.idUser == session.getUserId()
+                val isDraggable = isMine && list.listType == "ranking"
 
                 if (adapter == null) {
                     adapter = ListItemAdapter(
                         isOwner = isMine,
+                        isDraggable = isDraggable,
                         onGameClick = { item ->
                             findNavController().navigate(
                                 R.id.action_listDetailFragment_to_gameDetailFragment,
@@ -193,12 +250,14 @@ class ListDetailFragment : Fragment() {
                                 .setPositiveButton("Remove") { _, _ -> vm.removeItem(itemId) }
                                 .setNegativeButton("Cancel", null)
                                 .show()
-                        }
+                        },
+                        onStartDrag = { vh -> touchHelper.startDrag(vh) }
                     )
                     rv.adapter = adapter
+                    if (isDraggable) touchHelper.attachToRecyclerView(rv)
                 }
 
-                adapter.submitList(list.games)
+                checkNotNull(adapter).submitList(list.games)
 
                 view.findViewById<Button>(R.id.btnAddGame).isVisible    = isMine
                 view.findViewById<Button>(R.id.btnDeleteList).isVisible = isMine

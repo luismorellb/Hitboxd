@@ -3,6 +3,15 @@
     android:layout_width="match_parent" android:layout_height="wrap_content"
     android:orientation="horizontal" android:padding="12dp"
     android:layout_marginBottom="4dp" android:background="@color/bg_card">
+    <ImageView
+        android:id="@+id/dragHandle"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginEnd="4dp"
+        android:src="@drawable/ic_drag_handle"
+        android:contentDescription="@string/content_desc_drag_handle"
+        android:visibility="gone"/>
     <TextView android:id="@+id/tvPosition"
         android:layout_width="28dp" android:layout_height="wrap_content"
         android:layout_gravity="center_vertical" android:textColor="@color/text_muted"

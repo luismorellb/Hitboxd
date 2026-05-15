@@ -1,6 +1,8 @@
 package com.hitboxd.app.common.adapter
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
@@ -212,8 +214,10 @@ class UserListAdapter(private val onClick: (UserList) -> Unit) :
 // Usado en: ListDetailFragment (juegos dentro de la lista)
 class ListItemAdapter(
     private val isOwner: Boolean,
+    private val isDraggable: Boolean,
     private val onGameClick: (ListItem) -> Unit,
-    private val onRemove: (Int) -> Unit
+    private val onRemove: (Int) -> Unit,
+    private val onStartDrag: (RecyclerView.ViewHolder) -> Unit
 ) : ListAdapter<ListItem, ListItemAdapter.VH>(DIFF) {
 
     companion object {
@@ -224,6 +228,7 @@ class ListItemAdapter(
     }
 
     class VH(view: View) : RecyclerView.ViewHolder(view) {
+        val dragHandle: ImageView  = view.findViewById(R.id.dragHandle)
         val imgCover: ImageView    = view.findViewById(R.id.imgCover)
         val tvTitle: TextView      = view.findViewById(R.id.tvTitle)
         val tvComment: TextView    = view.findViewById(R.id.tvComment)
@@ -235,6 +240,7 @@ class ListItemAdapter(
         LayoutInflater.from(parent.context).inflate(R.layout.item_list_game, parent, false)
     )
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onBindViewHolder(holder: VH, pos: Int) {
         val item = getItem(pos)
         ImageUtils.loadGameCover(holder.itemView.context, item.coverUrl, holder.imgCover)
@@ -242,8 +248,24 @@ class ListItemAdapter(
         holder.tvComment.text  = item.comment ?: ""
         holder.tvPosition.text = holder.itemView.context.getString(R.string.format_hash_number, item.position)
         holder.itemView.setOnClickListener { onGameClick(item) }
+
         holder.btnRemove.visibility = if (isOwner) View.VISIBLE else View.GONE
         holder.btnRemove.setOnClickListener { onRemove(item.idItem) }
+
+        holder.dragHandle.visibility = if (isDraggable) View.VISIBLE else View.GONE
+        holder.dragHandle.setOnTouchListener { _, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                onStartDrag(holder)
+            }
+            false
+        }
+    }
+
+    fun moveItem(from: Int, to: Int) {
+        val list = currentList.toMutableList()
+        val item = list.removeAt(from)
+        list.add(to, item)
+        submitList(list)
     }
 }
 

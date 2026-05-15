@@ -104,7 +104,8 @@
 
     <!-- List detail -->
     <string name="content_desc_remove_game">Remove game</string>
-    <string name="format_list_info">%1$d juegos • %2$s</string>
+    <string name="content_desc_drag_handle">Drag to reorder</string>
+    <string name="list_label_games">juegos</string>
     <string name="list_owner_you">Tú</string>
 
     <!-- Format strings and fallbacks -->

@@ -165,6 +165,13 @@ data class AddGameToListRequest(
     val comment: String? = null
 )
 
+data class ReorderItem(
+    @SerializedName("id_item") val idItem: Int,
+    val position: Int
+)
+
+data class ReorderRequest(val items: List<ReorderItem>)
+
 data class ProfileUpdateRequest(
     val bio: String? = null,
     val pronouns: String? = null,

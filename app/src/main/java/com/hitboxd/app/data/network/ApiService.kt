@@ -171,6 +171,12 @@ interface ApiService {
         @Body body: AddGameToListRequest
     ): Response<MessageResponse>
 
+    @PUT("lists/{listId}/reorder")
+    suspend fun reorderList(
+        @Path("listId") listId: Int,
+        @Body body: ReorderRequest
+    ): Response<MessageResponse>
+
     @DELETE("lists/{listId}/items/{itemId}")
     suspend fun removeListItem(
         @Path("listId") listId: Int,
