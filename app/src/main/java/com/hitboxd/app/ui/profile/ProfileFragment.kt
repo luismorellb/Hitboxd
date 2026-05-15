@@ -1,6 +1,5 @@
 package com.hitboxd.app.ui.profile
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.*
@@ -17,16 +16,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.hitboxd.app.R
 import com.hitboxd.app.common.adapter.*
 import com.hitboxd.app.common.dialog.CreateListDialogFragment
-import com.hitboxd.app.common.dialog.ConfirmDeleteDialogFragment
 import com.hitboxd.app.data.model.*
 import com.hitboxd.app.data.repository.*
-import com.hitboxd.app.ui.landing.LandingActivity
 import com.hitboxd.app.utils.ImageUtils
 import com.hitboxd.app.utils.SessionManager
 import kotlinx.coroutines.flow.*
@@ -39,7 +35,6 @@ class ProfileViewModel : ViewModel() {
     private val activityRepo = ActivityRepository()
     private val reviewRepo   = ReviewRepository()
     private val listRepo     = ListRepository()
-    private val authRepo     = AuthRepository()
 
     private val _user          = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user
@@ -62,11 +57,11 @@ class ProfileViewModel : ViewModel() {
     private val _followersList = MutableStateFlow<List<Follow>>(emptyList())
     val followersList: StateFlow<List<Follow>> = _followersList
 
-    private val _isAdmin       = MutableStateFlow(false)
-    val isAdmin: StateFlow<Boolean> = _isAdmin
+    private val _watchlist     = MutableStateFlow<List<Game>>(emptyList())
+    val watchlist: StateFlow<List<Game>> = _watchlist
 
-    private val _isLoading     = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    private val _stats         = MutableStateFlow<UserStatsResponse?>(null)
+    val stats: StateFlow<UserStatsResponse?> = _stats
 
     // Filtros derivados (no StateFlow adicionales para no duplicar datos)
     val favoriteGames get() = _library.value.filter { it.isFavorite }
@@ -74,20 +69,19 @@ class ProfileViewModel : ViewModel() {
 
     fun loadAll() {
         viewModelScope.launch {
-            _isLoading.value = true
             when (val r = userRepo.getMyProfile()) {
                 is NetworkResult.Success -> {
-                    _user.value   = r.data
-                    _isAdmin.value = r.data.role == "admin"
+                    _user.value = r.data
                     val uid = r.data.idUser
                     launch { loadLibrary() }
                     launch { loadReviews(uid) }
                     launch { loadFeed() }
                     launch { loadLists(uid) }
+                    launch { loadWatchlist() }
+                    launch { loadStats() }
                 }
                 else -> {}
             }
-            _isLoading.value = false
         }
     }
 
@@ -119,6 +113,20 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
+    private suspend fun loadWatchlist() {
+        when (val r = activityRepo.getWatchlist()) {
+            is NetworkResult.Success -> _watchlist.value = r.data
+            else -> {}
+        }
+    }
+
+    private suspend fun loadStats() {
+        when (val r = activityRepo.getUserStats()) {
+            is NetworkResult.Success -> _stats.value = r.data
+            else -> {}
+        }
+    }
+
     fun loadNetwork(uid: Int) {
         viewModelScope.launch {
             launch {
@@ -138,21 +146,13 @@ class ProfileViewModel : ViewModel() {
 
     fun createList(title: String, description: String?) {
         viewModelScope.launch {
-            when (val r = listRepo.createList(title, description)) {
+            when (listRepo.createList(title, description)) {
                 is NetworkResult.Success -> {
-                    // Recargar listas
                     val uid = _user.value?.idUser ?: return@launch
                     loadLists(uid)
                 }
                 else -> {}
             }
-        }
-    }
-
-    fun logout(onDone: () -> Unit) {
-        viewModelScope.launch {
-            authRepo.logout()
-            onDone()
         }
     }
 }
@@ -162,7 +162,7 @@ class ProfileFragment : Fragment() {
 
     private val vm: ProfileViewModel by viewModels()
     private val tabLabels = listOf(
-        "PROFILE", "ACTIVITY", "GAMES", "REVIEWS", "LISTS", "NETWORK", "DIARY", "LIKES"
+        "PROFILE", "ACTIVITY", "GAMES", "BACKLOG", "REVIEWS", "LISTS", "NETWORK", "DIARY", "LIKES", "STATS"
     )
 
     override fun onCreateView(
@@ -222,11 +222,13 @@ class ProfileFragment : Fragment() {
             0 -> ProfileOverviewFragment()
             1 -> ActivityFeedTabFragment()
             2 -> GamesTabFragment()
-            3 -> ReviewsTabFragment()
-            4 -> ListsTabFragment()
-            5 -> NetworkTabFragment()
-            6 -> DiaryTabFragment()
-            7 -> LikedGamesTabFragment()
+            3 -> WatchlistTabFragment()
+            4 -> ReviewsTabFragment()
+            5 -> ListsTabFragment()
+            6 -> NetworkTabFragment()
+            7 -> DiaryTabFragment()
+            8 -> LikedGamesTabFragment()
+            9 -> StatsTabFragment()
             else -> ProfileOverviewFragment()
         }
     }
@@ -258,7 +260,7 @@ class ProfileOverviewFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.library.collect { list ->
+            vm.library.collect { _ ->
                 val favGames = vm.favoriteGames.take(4).map {
                     Game(idGame = it.idGame, title = it.title ?: "", slug = it.slug ?: "", coverUrl = it.coverUrl)
                 }
@@ -428,7 +430,7 @@ class NetworkTabFragment : Fragment() {
     private fun viewModelScope() = viewLifecycleOwner.lifecycleScope
 }
 
-// ─── TAB 6: DIARY ────────────────────────────────────────
+// ─── TAB 7: DIARY ────────────────────────────────────────
 class DiaryTabFragment : Fragment() {
     private val vm: ProfileViewModel by viewModels({ requireParentFragment() })
 
@@ -447,7 +449,7 @@ class DiaryTabFragment : Fragment() {
     }
 }
 
-// ─── TAB 7: LIKES ────────────────────────────────────────
+// ─── TAB 8: LIKES ────────────────────────────────────────
 class LikedGamesTabFragment : Fragment() {
     private val vm: ProfileViewModel by viewModels({ requireParentFragment() })
 
@@ -466,11 +468,105 @@ class LikedGamesTabFragment : Fragment() {
             this.adapter  = adapter
         }
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.library.collect { list ->
+            vm.library.collect { _ ->
                 adapter.submitList(vm.likedGames.map {
                     Game(idGame = it.idGame, title = it.title ?: "", slug = it.slug ?: "", coverUrl = it.coverUrl)
                 })
             }
         }
+    }
+}
+
+// ─── TAB 3: BACKLOG ──────────────────────────────────────
+class WatchlistTabFragment : Fragment() {
+    private val vm: ProfileViewModel by viewModels({ requireParentFragment() })
+
+    override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, s: Bundle?): View =
+        inflater.inflate(R.layout.fragment_watchlist_tab, c, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val tvEmpty = view.findViewById<TextView>(R.id.tvEmpty)
+        val adapter = GameCardAdapter { game ->
+            findNavController().navigate(
+                R.id.action_profileFragment_to_gameDetailFragment,
+                bundleOf("slug" to game.slug)
+            )
+        }
+        view.findViewById<RecyclerView>(R.id.rvWatchlist).apply {
+            layoutManager = GridLayoutManager(context, 3)
+            this.adapter  = adapter
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.watchlist.collect { games ->
+                adapter.submitList(games)
+                tvEmpty.isVisible = games.isEmpty()
+            }
+        }
+    }
+}
+
+// ─── TAB 9: STATS ────────────────────────────────────────
+// NOTE: /activity/stats returns data for the authenticated user only.
+// This tab is intentionally absent from PublicProfileFragment.
+class StatsTabFragment : Fragment() {
+    private val vm: ProfileViewModel by viewModels({ requireParentFragment() })
+
+    override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, s: Bundle?): View =
+        inflater.inflate(R.layout.fragment_stats_tab, c, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.stats.collect { stats ->
+                stats ?: return@collect
+                renderStats(view, stats)
+            }
+        }
+    }
+
+    private fun renderStats(view: View, stats: UserStatsResponse) {
+        val ctx = requireContext()
+
+        view.findViewById<TextView>(R.id.tvAvgRating).text =
+            stats.avgRating ?: getString(R.string.avg_rating_none)
+        view.findViewById<TextView>(R.id.tvRatedCount).text =
+            getString(R.string.format_games_rated, stats.ratedCount)
+
+        val llGenres = view.findViewById<LinearLayout>(R.id.llTopGenres)
+        llGenres.removeAllViews()
+        val maxGenre = stats.genreDistribution.maxOfOrNull { it.count } ?: 1
+        stats.genreDistribution.take(5).forEach { entry ->
+            llGenres.addView(buildStatRow(ctx, llGenres, entry.genre, entry.count, maxGenre))
+        }
+
+        val llYear = view.findViewById<LinearLayout>(R.id.llByYear)
+        llYear.removeAllViews()
+        val maxYear = stats.yearDistribution.maxOfOrNull { it.count } ?: 1
+        stats.yearDistribution.sortedByDescending { it.year }.take(8).forEach { entry ->
+            llYear.addView(buildStatRow(ctx, llYear, entry.year.toString(), entry.count, maxYear))
+        }
+
+        val llStatus = view.findViewById<LinearLayout>(R.id.llStatusBreakdown)
+        llStatus.removeAllViews()
+        val maxStatus = stats.statusDistribution.maxOfOrNull { it.count } ?: 1
+        stats.statusDistribution.forEach { entry ->
+            llStatus.addView(buildStatRow(ctx, llStatus, entry.status, entry.count, maxStatus))
+        }
+    }
+
+    private fun buildStatRow(
+        ctx: android.content.Context,
+        parent: ViewGroup,
+        label: String,
+        count: Int,
+        maxCount: Int
+    ): View {
+        val row = LayoutInflater.from(ctx).inflate(R.layout.row_stat_bar, parent, false)
+        row.findViewById<TextView>(R.id.tvLabel).text = label
+        row.findViewById<ProgressBar>(R.id.progressBar).apply {
+            max      = maxCount
+            progress = count
+        }
+        row.findViewById<TextView>(R.id.tvCount).text = count.toString()
+        return row
     }
 }
