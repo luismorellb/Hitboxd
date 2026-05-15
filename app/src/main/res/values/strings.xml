@@ -60,6 +60,13 @@
     <string name="stat_label_pending_complaints">Pending Complaints</string>
     <string name="stat_label_total_users">Total Users</string>
     <string name="stat_label_admin_id">Admin ID</string>
+    <string name="stat_label_active_users">Active Users</string>
+    <string name="stat_label_banned_users">Banned Users</string>
+    <string name="stat_label_total_games">Total Games</string>
+    <string name="stat_label_total_reviews">Total Reviews</string>
+    <string name="stat_label_recent_signups">Signups (7d)</string>
+    <string name="admin_chart_title">Reviews per Day (7d)</string>
+    <string name="admin_btn_refresh">Refresh</string>
 
     <!-- Review detail dialog -->
     <string name="dialog_review_detail_title">Review Detail</string>

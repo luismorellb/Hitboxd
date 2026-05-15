@@ -203,6 +203,10 @@ interface ApiService {
     @DELETE("lists/{listId}")
     suspend fun deleteList(@Path("listId") listId: Int): Response<MessageResponse>
 
+    // ─── ADMIN (/api/admin) ──────────────────────────────
+    @GET("admin/stats/global")
+    suspend fun getAdminGlobalStats(): Response<AdminGlobalStats>
+
     // ─── NOTIFICATIONS (/api/notifications) ─────────────
     @GET("notifications")
     suspend fun getNotifications(): Response<NotificationsResponse>

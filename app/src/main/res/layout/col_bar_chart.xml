@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:padding="2dp">
+
+    <TextView
+        android:id="@+id/tvBarCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="9sp"
+        android:textColor="@color/text_secondary"/>
+
+    <View
+        android:id="@+id/barSpacer"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"/>
+
+    <View
+        android:id="@+id/barFill"
+        android:layout_width="16dp"
+        android:layout_height="4dp"
+        android:background="@color/brand_cyan"/>
+
+    <TextView
+        android:id="@+id/tvBarDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="9sp"
+        android:textColor="@color/text_muted"/>
+
+</LinearLayout>

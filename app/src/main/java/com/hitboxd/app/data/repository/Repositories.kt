@@ -224,6 +224,11 @@ class ListRepository {
         safeCall { api.deleteList(listId) }
 }
 
+// ─── ADMIN REPOSITORY ────────────────────────────────────
+class AdminRepository {
+    suspend fun getGlobalStats() = safeCall { api.getAdminGlobalStats() }
+}
+
 // ─── NOTIFICATION REPOSITORY ─────────────────────────────
 class NotificationRepository {
     suspend fun list() = safeCall { api.getNotifications() }

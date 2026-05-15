@@ -160,6 +160,33 @@ data class ListRequest(
     @SerializedName("list_type") val listType: String = "collection"
 )
 
+data class AdminGlobalStats(
+    val counts: StatsCounts = StatsCounts(),
+    @SerializedName("reviews_per_day_7d") val reviewsPerDay7d: List<DayCount> = emptyList(),
+    @SerializedName("top_games_30d")      val topGames30d: List<Game> = emptyList(),
+    val admin: AdminInfo = AdminInfo(),
+    @SerializedName("generated_at")       val generatedAt: String? = null
+)
+
+data class StatsCounts(
+    @SerializedName("active_users")      val activeUsers: Int = 0,
+    @SerializedName("banned_users")      val bannedUsers: Int = 0,
+    @SerializedName("total_games")       val totalGames: Int = 0,
+    @SerializedName("total_reviews")     val totalReviews: Int = 0,
+    @SerializedName("total_lists")       val totalLists: Int = 0,
+    @SerializedName("total_follows")     val totalFollows: Int = 0,
+    @SerializedName("total_activities")  val totalActivities: Int = 0,
+    @SerializedName("pending_reports")   val pendingReports: Int = 0,
+    @SerializedName("recent_signups_7d") val recentSignups7d: Int = 0
+)
+
+data class DayCount(val date: String = "", val count: Int = 0)
+
+data class AdminInfo(
+    @SerializedName("id_user") val idUser: Int = 0,
+    val username: String = ""
+)
+
 data class AdminUsersResponse(
     val users: List<User> = emptyList(),
     val total: Int = 0,

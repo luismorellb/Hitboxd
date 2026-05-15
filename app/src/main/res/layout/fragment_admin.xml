@@ -41,14 +41,14 @@
                 android:textColor="@color/text_main"
                 android:layout_marginBottom="12dp"/>
 
-            <!-- Stats cards — 2x2 grid via nested LinearLayouts -->
+            <!-- Stats cards — 3x2 grid + admin card -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="8dp">
 
-                <!-- Row 1 -->
+                <!-- Row 1: Active Users | Banned Users -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -57,7 +57,82 @@
 
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
-                        android:layout_height="90dp"
+                        android:layout_height="80dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        app:cardCornerRadius="8dp"
+                        app:cardBackgroundColor="@color/brand_green"
+                        app:cardElevation="2dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="8dp">
+
+                            <TextView
+                                android:id="@+id/tvActiveUsers"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/stat_zero"
+                                android:textStyle="bold"
+                                android:textSize="24sp"
+                                android:textColor="@color/text_white"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/stat_label_active_users"
+                                android:textColor="@color/text_white"
+                                android:textSize="11sp"/>
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="80dp"
+                        android:layout_weight="1"
+                        app:cardCornerRadius="8dp"
+                        app:cardBackgroundColor="@color/brand_red"
+                        app:cardElevation="2dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="8dp">
+
+                            <TextView
+                                android:id="@+id/tvBannedUsers"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/stat_zero"
+                                android:textStyle="bold"
+                                android:textSize="24sp"
+                                android:textColor="@color/text_white"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/stat_label_banned_users"
+                                android:textColor="@color/text_white"
+                                android:textSize="11sp"/>
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+                </LinearLayout>
+
+                <!-- Row 2: Total Games | Total Reviews -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="80dp"
                         android:layout_weight="1"
                         android:layout_marginEnd="6dp"
                         app:cardCornerRadius="8dp"
@@ -72,18 +147,18 @@
                             android:padding="8dp">
 
                             <TextView
-                                android:id="@+id/tvCachedGames"
+                                android:id="@+id/tvTotalGames"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/stat_zero"
                                 android:textStyle="bold"
-                                android:textSize="26sp"
+                                android:textSize="24sp"
                                 android:textColor="@color/text_white"/>
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/stat_label_cached_games"
+                                android:text="@string/stat_label_total_games"
                                 android:textColor="@color/text_white"
                                 android:textSize="11sp"/>
                         </LinearLayout>
@@ -91,8 +166,50 @@
 
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
-                        android:layout_height="90dp"
+                        android:layout_height="80dp"
                         android:layout_weight="1"
+                        app:cardCornerRadius="8dp"
+                        app:cardBackgroundColor="@color/bg_panel_dark"
+                        app:cardElevation="2dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="8dp">
+
+                            <TextView
+                                android:id="@+id/tvTotalReviews"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/stat_zero"
+                                android:textStyle="bold"
+                                android:textSize="24sp"
+                                android:textColor="@color/brand_cyan"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/stat_label_total_reviews"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="11sp"/>
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+                </LinearLayout>
+
+                <!-- Row 3: Pending Reports | Signups 7d -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="80dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
                         app:cardCornerRadius="8dp"
                         app:cardBackgroundColor="@color/brand_yellow"
                         app:cardElevation="2dp">
@@ -110,7 +227,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/stat_zero"
                                 android:textStyle="bold"
-                                android:textSize="26sp"
+                                android:textSize="24sp"
                                 android:textColor="@color/text_main"/>
 
                             <TextView
@@ -121,21 +238,13 @@
                                 android:textSize="11sp"/>
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
-                </LinearLayout>
-
-                <!-- Row 2 -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
 
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
-                        android:layout_height="90dp"
+                        android:layout_height="80dp"
                         android:layout_weight="1"
-                        android:layout_marginEnd="6dp"
                         app:cardCornerRadius="8dp"
-                        app:cardBackgroundColor="@color/brand_green"
+                        app:cardBackgroundColor="@color/bg_panel_dark"
                         app:cardElevation="2dp">
 
                         <LinearLayout
@@ -146,27 +255,36 @@
                             android:padding="8dp">
 
                             <TextView
-                                android:id="@+id/tvTotalUsers"
+                                android:id="@+id/tvRecentSignups"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/avg_rating_none"
+                                android:text="@string/stat_zero"
                                 android:textStyle="bold"
-                                android:textSize="26sp"
+                                android:textSize="24sp"
                                 android:textColor="@color/text_white"/>
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/stat_label_total_users"
-                                android:textColor="@color/text_white"
+                                android:text="@string/stat_label_recent_signups"
+                                android:textColor="@color/text_secondary"
                                 android:textSize="11sp"/>
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
+                </LinearLayout>
+
+                <!-- Admin ID + Refresh row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
 
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
-                        android:layout_height="90dp"
+                        android:layout_height="80dp"
                         android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
                         app:cardCornerRadius="8dp"
                         app:cardBackgroundColor="@color/bg_panel_dark"
                         app:cardElevation="2dp">
@@ -184,7 +302,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/avg_rating_none"
                                 android:textStyle="bold"
-                                android:textSize="26sp"
+                                android:textSize="24sp"
                                 android:textColor="@color/brand_cyan"/>
 
                             <TextView
@@ -195,8 +313,31 @@
                                 android:textSize="11sp"/>
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
+
+                    <Button
+                        android:id="@+id/btnRefreshStats"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/admin_btn_refresh"/>
                 </LinearLayout>
             </LinearLayout>
+
+            <!-- Reviews per day chart -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/admin_chart_title"
+                android:textStyle="bold"
+                android:textColor="@color/text_main"
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="8dp"/>
+
+            <LinearLayout
+                android:id="@+id/llReviewsChart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp"/>
 
             <!-- User management section -->
             <TextView
