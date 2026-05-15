@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.viewpager2)
     implementation(libs.coroutines.android)
     implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.androidx.security.crypto)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

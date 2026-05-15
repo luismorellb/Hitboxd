@@ -15,6 +15,7 @@ import com.hitboxd.app.R
 import com.hitboxd.app.common.adapter.GameCardAdapter
 import com.hitboxd.app.common.dialog.AuthDialogFragment
 import com.hitboxd.app.data.model.*
+import com.hitboxd.app.data.network.RetrofitClient
 import com.hitboxd.app.data.repository.AuthRepository
 import com.hitboxd.app.data.repository.GameRepository
 import com.hitboxd.app.ui.home.HomeActivity
@@ -72,8 +73,10 @@ class LandingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         session = SessionManager(this)
 
-        // Si ya tiene sesión (cookie) ir directo a Home
-        if (session.isLoggedIn()) { goHome(); return }
+        // Ambas condiciones deben cumplirse: cookie presente en el jar (token real en disco
+        // encriptado) Y metadata de sesión válida. Si solo una es true, las cookies
+        // expiraron o los metadatos quedaron huérfanos — mostrar landing.
+        if (RetrofitClient.cookieJar.hasToken() && session.isLoggedIn()) { goHome(); return }
 
         setContentView(R.layout.activity_landing)
         setupButtons()
