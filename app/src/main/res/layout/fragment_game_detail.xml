@@ -1,27 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/bg_main">
     <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:visibility="visible" />
     <androidx.core.widget.NestedScrollView android:id="@+id/contentRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-            <ImageView android:id="@+id/imgBanner" android:layout_width="match_parent" android:layout_height="250dp" android:scaleType="centerCrop" />
-            <ImageView android:id="@+id/imgCover" android:layout_width="120dp" android:layout_height="160dp" android:layout_marginStart="16dp" android:layout_marginTop="-60dp" android:scaleType="centerCrop" />
+            <ImageView android:id="@+id/imgBanner" android:layout_width="match_parent" android:layout_height="250dp" android:scaleType="centerCrop" android:contentDescription="@string/content_desc_banner" />
+            <ImageView android:id="@+id/imgCover" android:layout_width="120dp" android:layout_height="160dp" android:layout_marginStart="16dp" android:layout_marginTop="-60dp" android:scaleType="centerCrop" android:contentDescription="@string/content_desc_cover" />
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
                 <TextView android:id="@+id/tvGameTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_main" />
                 <TextView android:id="@+id/tvDeveloper" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="@color/text_secondary" android:layout_marginTop="4dp" />
+                <!-- Status buttons: intentionally filled/colored, not borderless dialog actions -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="16dp">
-                    <Button android:id="@+id/btnPlayed" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Played" android:backgroundTint="@color/brand_green" android:layout_marginEnd="4dp" />
-                    <Button android:id="@+id/btnPending" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Pending" android:backgroundTint="@color/brand_yellow" android:layout_marginEnd="4dp" />
-                    <Button android:id="@+id/btnAbandoned" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Abandoned" android:backgroundTint="@color/brand_red" />
+                    <Button android:id="@+id/btnPlayed" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/status_played" android:backgroundTint="@color/brand_green" android:layout_marginEnd="4dp" tools:ignore="ButtonStyle" />
+                    <Button android:id="@+id/btnPending" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/status_pending" android:backgroundTint="@color/brand_yellow" android:layout_marginEnd="4dp" tools:ignore="ButtonStyle" />
+                    <Button android:id="@+id/btnAbandoned" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/status_abandoned" android:backgroundTint="@color/brand_red" tools:ignore="ButtonStyle" />
                 </LinearLayout>
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
-                    <RatingBar android:id="@+id/ratingBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:numStars="5" android:stepSize="0.5" android:layout_weight="1" />
-                    <ImageButton android:id="@+id/btnLike" android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/ic_heart_outline" android:background="?attr/selectableItemBackgroundBorderless" />
-                    <ImageButton android:id="@+id/btnFav" android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/ic_star_empty" android:background="?attr/selectableItemBackgroundBorderless" />
+                    <RatingBar android:id="@+id/ratingBar" android:layout_width="0dp" android:layout_height="wrap_content" android:numStars="5" android:stepSize="0.5" android:layout_weight="1" />
+                    <ImageButton android:id="@+id/btnLike" android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/ic_heart_outline" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/content_desc_like" />
+                    <ImageButton android:id="@+id/btnFav" android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/ic_star_empty" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/content_desc_favorite" />
                 </LinearLayout>
                 <TextView android:id="@+id/tvDescription" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="@color/text_secondary" android:layout_marginTop="16dp" />
-                <Button android:id="@+id/btnWriteReview" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="Write a Review" android:backgroundTint="@color/brand_cyan" />
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Reviews" android:textStyle="bold" android:textSize="18sp" android:textColor="@color/text_main" android:layout_marginTop="24dp" android:layout_marginBottom="8dp" />
+                <Button android:id="@+id/btnWriteReview" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="@string/write_review" android:backgroundTint="@color/brand_cyan" />
+
+                <!-- ─── GENRES ──────────────────────────────────── -->
+                <LinearLayout
+                    android:id="@+id/llGenresSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp"
+                    android:visibility="gone">
+                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/section_genres" android:textStyle="bold" android:textSize="18sp" android:textColor="@color/text_main" android:layout_marginBottom="8dp" />
+                    <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
+                        <LinearLayout android:id="@+id/llGenres" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" />
+                    </HorizontalScrollView>
+                </LinearLayout>
+
+                <!-- ─── STATS ───────────────────────────────────── -->
+                <LinearLayout
+                    android:id="@+id/llStatsSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp"
+                    android:visibility="gone">
+                    <TextView android:id="@+id/tvAvgRating" android:layout_width="match_parent" android:layout_height="wrap_content" android:textColor="@color/text_secondary" android:textSize="14sp" android:layout_marginBottom="12dp" />
+                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/section_rating_distribution" android:textStyle="bold" android:textSize="16sp" android:textColor="@color/text_main" android:layout_marginBottom="8dp" />
+                    <LinearLayout android:id="@+id/llRatingHistogram" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="16dp" />
+                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/section_player_status" android:textStyle="bold" android:textSize="16sp" android:textColor="@color/text_main" android:layout_marginBottom="8dp" />
+                    <LinearLayout android:id="@+id/llStatusDistribution" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+                </LinearLayout>
+
+                <!-- ─── SIMILAR GAMES ───────────────────────────── -->
+                <LinearLayout
+                    android:id="@+id/llSimilarSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="16dp"
+                    android:visibility="gone">
+                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/section_similar_games" android:textStyle="bold" android:textSize="18sp" android:textColor="@color/text_main" android:layout_marginBottom="8dp" />
+                    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvSimilarGames" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" />
+                </LinearLayout>
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/section_reviews" android:textStyle="bold" android:textSize="18sp" android:textColor="@color/text_main" android:layout_marginTop="24dp" android:layout_marginBottom="8dp" />
                 <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvReviews" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" />
             </LinearLayout>
         </LinearLayout>

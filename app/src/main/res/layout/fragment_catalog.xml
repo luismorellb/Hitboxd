@@ -3,16 +3,17 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical" android:background="@color/bg_main">
     <EditText android:id="@+id/etSearch" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:hint="Search games..." android:padding="12dp" android:margin="12dp"
-        android:background="@color/bg_card" android:drawableStart="@drawable/ic_catalog" />
+        android:hint="@string/search_games_hint" android:padding="12dp" android:layout_margin="12dp"
+        android:background="@color/bg_card" android:drawableStart="@drawable/ic_catalog"
+        android:inputType="text" android:importantForAutofill="no" />
     <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
         <androidx.core.widget.NestedScrollView android:id="@+id/defaultSections" android:layout_width="match_parent" android:layout_height="match_parent">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Trending" android:textStyle="bold" android:textColor="@color/text_main" android:layout_marginBottom="8dp"/>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/section_trending" android:textStyle="bold" android:textColor="@color/text_main" android:layout_marginBottom="8dp"/>
                 <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvTrending" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="24dp"/>
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Popular on Hitboxd" android:textStyle="bold" android:textColor="@color/text_main" android:layout_marginBottom="8dp"/>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/section_popular" android:textStyle="bold" android:textColor="@color/text_main" android:layout_marginBottom="8dp"/>
                 <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvPopular" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="24dp"/>
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="New Releases" android:textStyle="bold" android:textColor="@color/text_main" android:layout_marginBottom="8dp"/>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/section_new_releases" android:textStyle="bold" android:textColor="@color/text_main" android:layout_marginBottom="8dp"/>
                 <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvNew" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal"/>
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>

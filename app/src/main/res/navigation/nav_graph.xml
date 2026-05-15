@@ -26,6 +26,11 @@
         <action
             android:id="@+id/action_gameDetailFragment_to_publicProfileFragment"
             app:destination="@id/publicProfileFragment" />
+        <action
+            android:id="@+id/action_gameDetailFragment_self"
+            app:destination="@id/gameDetailFragment"
+            app:popUpTo="@id/gameDetailFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
