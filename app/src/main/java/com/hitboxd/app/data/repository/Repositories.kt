@@ -73,6 +73,15 @@ class UserRepository {
 
     suspend fun getFollowing(userId: Int) =
         safeCall { api.getFollowing(userId) }
+
+    suspend fun getSuggestions(limit: Int = 6) =
+        safeCall { api.getSuggestions(limit) }
+
+    suspend fun getUserCount() =
+        safeCall { api.getUserCount() }
+
+    suspend fun activateUser() =
+        safeCall { api.activateUser() }
 }
 
 // ─── GAME REPOSITORY ─────────────────────────────────────
@@ -97,6 +106,18 @@ class GameRepository {
 
     suspend fun getById(id: Int) =
         safeCall { api.getGameById(id) }
+
+    suspend fun searchPaginated(query: String, page: Int = 1, limit: Int = 24) =
+        safeCall { api.searchGamesPaginated(query, page, limit) }
+
+    suspend fun getRecommended(limit: Int = 20) =
+        safeCall { api.getRecommended(limit) }
+
+    suspend fun getExtras(id: Int) =
+        safeCall { api.getGameExtras(id) }
+
+    suspend fun getStats(id: Int) =
+        safeCall { api.getGameStats(id) }
 }
 
 // ─── ACTIVITY REPOSITORY ─────────────────────────────────
@@ -119,6 +140,15 @@ class ActivityRepository {
 
     suspend fun getUserLibrary() =
         safeCall { api.getUserLibrary() }
+
+    suspend fun getWatchlist() =
+        safeCall { api.getWatchlist() }
+
+    suspend fun getStreak() =
+        safeCall { api.getStreak() }
+
+    suspend fun getUserStats() =
+        safeCall { api.getUserStats() }
 }
 
 // ─── REVIEW REPOSITORY ───────────────────────────────────
@@ -150,6 +180,9 @@ class ReviewRepository {
 
     suspend fun approveReview(reviewId: Int) =
         safeCall { api.approveReview(reviewId) }
+
+    suspend fun getRecent(limit: Int = 3) =
+        safeCall { api.getRecentReviews(limit) }
 }
 
 // ─── LIST REPOSITORY ─────────────────────────────────────
@@ -169,4 +202,11 @@ class ListRepository {
 
     suspend fun deleteList(listId: Int) =
         safeCall { api.deleteList(listId) }
+}
+
+// ─── NOTIFICATION REPOSITORY ─────────────────────────────
+class NotificationRepository {
+    suspend fun list() = safeCall { api.getNotifications() }
+    suspend fun markAllRead() = safeCall { api.markAllNotificationsRead() }
+    suspend fun markOneRead(id: Int) = safeCall { api.markNotificationRead(id) }
 }

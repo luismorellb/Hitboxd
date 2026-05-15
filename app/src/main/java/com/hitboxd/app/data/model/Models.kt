@@ -175,6 +175,65 @@ data class ProfileUpdateRequest(
 data class MessageResponse(val message: String = "")
 data class CreateResponse(val message: String = "", val id: Int = 0)
 
+// ─── NOTIFICATION ────────────────────────────────────────
+data class Notification(
+    @SerializedName("id_notification") val idNotification: Int = 0,
+    val type: String = "",
+    @SerializedName("id_reference")    val idReference: Int? = null,
+    @SerializedName("is_read")         val isRead: Boolean = false,
+    @SerializedName("created_at")      val createdAt: String? = null,
+    @SerializedName("actor_username")  val actorUsername: String = "",
+    @SerializedName("actor_avatar")    val actorAvatar: String? = null
+)
+
+data class NotificationsResponse(
+    val notifications: List<Notification> = emptyList(),
+    @SerializedName("unread_count") val unreadCount: Int = 0
+)
+
+// ─── USER EXTRAS ─────────────────────────────────────────
+data class UserCountResponse(val count: Int = 0)
+
+// ─── ACTIVITY EXTRAS ─────────────────────────────────────
+data class StreakResponse(val streak: Int = 0)
+
+data class GenreCount(val genre: String = "", val count: Int = 0)
+data class YearCount(val year: Int = 0, val count: Int = 0)
+data class StatusCount(val status: String = "", val count: Int = 0)
+
+data class UserStatsResponse(
+    @SerializedName("genre_distribution")  val genreDistribution: List<GenreCount> = emptyList(),
+    @SerializedName("year_distribution")   val yearDistribution: List<YearCount> = emptyList(),
+    @SerializedName("avg_rating")          val avgRating: String? = null,
+    @SerializedName("rated_count")         val ratedCount: Int = 0,
+    @SerializedName("status_distribution") val statusDistribution: List<StatusCount> = emptyList()
+)
+
+// ─── GAME EXTRAS ─────────────────────────────────────────
+data class SearchPageResponse(
+    val results: List<Game> = emptyList(),
+    val total: Int = 0,
+    val page: Int = 1,
+    val limit: Int = 24
+)
+
+data class GameGenre(val id: Int = 0, val name: String = "")
+
+data class GameExtrasResponse(
+    val genres: List<GameGenre> = emptyList(),
+    @SerializedName("similarGames") val similarGames: List<Game> = emptyList()
+)
+
+data class RatingDistributionEntry(val rating: Float = 0f, val count: Int = 0)
+data class StatusDistributionEntry(val status: String = "", val count: Int = 0, val percentage: Int = 0)
+
+data class GameStatsResponse(
+    @SerializedName("rating_distribution") val ratingDistribution: List<RatingDistributionEntry> = emptyList(),
+    @SerializedName("avg_rating")          val avgRating: String? = null,
+    @SerializedName("total_ratings")       val totalRatings: Int = 0,
+    @SerializedName("status_distribution") val statusDistribution: List<StatusDistributionEntry> = emptyList()
+)
+
 // ─── NETWORK RESULT ──────────────────────────────────────
 sealed class NetworkResult<out T> {
     data class Success<T>(val data: T) : NetworkResult<T>()

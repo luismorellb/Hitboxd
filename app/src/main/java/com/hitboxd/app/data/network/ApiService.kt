@@ -42,13 +42,21 @@ interface ApiService {
     @PUT("users/softdelete")
     suspend fun softDeleteUser(): Response<MessageResponse>
 
+    @PUT("users/active")
+    suspend fun activateUser(): Response<MessageResponse>
+
+    @GET("users/suggestions")
+    suspend fun getSuggestions(@Query("limit") limit: Int = 6): Response<List<User>>
+
+    @GET("users/count")
+    suspend fun getUserCount(): Response<UserCountResponse>
+
     @POST("users/follow/{id}")
     suspend fun followUser(@Path("id") userId: Int): Response<MessageResponse>
 
     @DELETE("users/follow/{id}")
     suspend fun unfollowUser(@Path("id") userId: Int): Response<MessageResponse>
 
-    // ⚠️ Esta ruta debe ir al FINAL para no interceptar las anteriores
     @GET("users/{username}")
     suspend fun getUserByUsername(@Path("username") username: String): Response<User>
 
@@ -68,15 +76,40 @@ interface ApiService {
     @GET("games/random")
     suspend fun getRandomGame(): Response<Game>
 
+    @GET("games/search-page")
+    suspend fun searchGamesPaginated(
+        @Query("q") query: String,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 24
+    ): Response<SearchPageResponse>
+
+    @GET("games/recommended")
+    suspend fun getRecommended(@Query("limit") limit: Int = 20): Response<List<Game>>
+
     @GET("games/slug/{slug}")
     suspend fun getGameBySlug(@Path("slug") slug: String): Response<Game>
 
     @GET("games/{id}")
     suspend fun getGameById(@Path("id") id: Int): Response<Game>
 
+    @GET("games/{id}/extras")
+    suspend fun getGameExtras(@Path("id") id: Int): Response<GameExtrasResponse>
+
+    @GET("games/{id}/stats")
+    suspend fun getGameStats(@Path("id") id: Int): Response<GameStatsResponse>
+
     // ─── ACTIVITY (/api/activity) ────────────────────────
     @POST("activity")
     suspend fun logActivity(@Body body: ActivityRequest): Response<MessageResponse>
+
+    @GET("activity/watchlist")
+    suspend fun getWatchlist(): Response<List<Game>>
+
+    @GET("activity/streak")
+    suspend fun getStreak(): Response<StreakResponse>
+
+    @GET("activity/stats")
+    suspend fun getUserStats(): Response<UserStatsResponse>
 
     @GET("activity/check/{gameId}")
     suspend fun checkStatus(@Path("gameId") gameId: Int): Response<ActivityStatus>
@@ -90,6 +123,9 @@ interface ApiService {
     // ─── REVIEWS (/api/reviews) ──────────────────────────
     @POST("reviews")
     suspend fun addReview(@Body body: ReviewRequest): Response<MessageResponse>
+
+    @GET("reviews/recent")
+    suspend fun getRecentReviews(@Query("limit") limit: Int = 3): Response<List<Review>>
 
     @GET("reviews/reported")
     suspend fun getReportedReviews(): Response<List<Review>>
@@ -134,4 +170,14 @@ interface ApiService {
 
     @DELETE("lists/{listId}")
     suspend fun deleteList(@Path("listId") listId: Int): Response<MessageResponse>
+
+    // ─── NOTIFICATIONS (/api/notifications) ─────────────
+    @GET("notifications")
+    suspend fun getNotifications(): Response<NotificationsResponse>
+
+    @PUT("notifications/read-all")
+    suspend fun markAllNotificationsRead(): Response<MessageResponse>
+
+    @PUT("notifications/{id}/read")
+    suspend fun markNotificationRead(@Path("id") id: Int): Response<MessageResponse>
 }
