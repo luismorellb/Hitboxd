@@ -17,6 +17,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.hitboxd.app.R
 import com.hitboxd.app.common.adapter.GameCardAdapter
 import com.hitboxd.app.common.adapter.ReviewAdapter
@@ -61,6 +62,9 @@ class GameDetailViewModel : ViewModel() {
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val _actionError = MutableSharedFlow<String>(extraBufferCapacity = 4)
+    val actionError: SharedFlow<String> = _actionError
 
     private val _reviewsLoading = MutableStateFlow(false)
     val reviewsLoading: StateFlow<Boolean> = _reviewsLoading
@@ -120,10 +124,17 @@ class GameDetailViewModel : ViewModel() {
     }
 
     fun updateStatus(newStatus: String) {
-        val toSet = if (_status.value.status == newStatus) null else newStatus
-        _status.value = _status.value.copy(status = toSet)
+        val prev = _status.value
+        val toSet = if (prev.status == newStatus) null else newStatus
+        _status.value = prev.copy(status = toSet)
         val gameId = _game.value?.idGame ?: return
-        viewModelScope.launch { activityRepo.logActivity(gameId, status = toSet) }
+        viewModelScope.launch {
+            val result = activityRepo.logActivity(gameId, status = toSet)
+            if (result is NetworkResult.Error) {
+                _status.value = prev
+                _actionError.tryEmit("No se pudo guardar el cambio")
+            }
+        }
     }
 
     fun updateRating(rating: Float) {
@@ -133,17 +144,31 @@ class GameDetailViewModel : ViewModel() {
     }
 
     fun toggleLike() {
-        val newLiked = !_status.value.isLiked
-        _status.value = _status.value.copy(isLiked = newLiked)
+        val prev = _status.value
+        val newFav = !prev.isLiked
+        _status.value = prev.copy(isLiked = newFav)
         val gameId = _game.value?.idGame ?: return
-        viewModelScope.launch { activityRepo.logActivity(gameId, isLiked = newLiked) }
+        viewModelScope.launch {
+            val result = activityRepo.logActivity(gameId, isFavorite = newFav)
+            if (result is NetworkResult.Error) {
+                _status.value = prev
+                _actionError.tryEmit("No se pudo guardar el cambio")
+            }
+        }
     }
 
     fun toggleFavorite() {
-        val newFav = !_status.value.isFavorite
-        _status.value = _status.value.copy(isFavorite = newFav)
+        val prev = _status.value
+        val newFav = !prev.isFavorite
+        _status.value = prev.copy(isFavorite = newFav)
         val gameId = _game.value?.idGame ?: return
-        viewModelScope.launch { activityRepo.logActivity(gameId, isFavorite = newFav) }
+        viewModelScope.launch {
+            val result = activityRepo.logActivity(gameId, isFavorite = newFav)
+            if (result is NetworkResult.Error) {
+                _status.value = prev
+                _actionError.tryEmit("No se pudo guardar el cambio")
+            }
+        }
     }
 
     fun toggleReviewLike(reviewId: Int) {
@@ -385,6 +410,13 @@ class GameDetailFragment : Fragment() {
                 vm.stats.collect { stats ->
                     stats ?: return@collect
                     renderStats(view, stats)
+                }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.actionError.collect { msg ->
+                    Snackbar.make(view, msg, Snackbar.LENGTH_SHORT).show()
                 }
             }
         }
