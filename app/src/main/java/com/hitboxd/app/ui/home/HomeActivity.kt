@@ -18,6 +18,7 @@ import com.hitboxd.app.data.network.SocketEvent
 import com.hitboxd.app.data.network.SocketManager
 import com.hitboxd.app.ui.landing.LandingActivity
 import com.hitboxd.app.utils.NotificationBadgeManager
+import com.hitboxd.app.utils.NotificationHelper
 import com.hitboxd.app.utils.SessionManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -105,11 +106,20 @@ class HomeActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 SocketManager.events.collect { event ->
-                    if (event is SocketEvent.UnreadCount) {
-                        NotificationBadgeManager.set(event.count)
+                    when (event) {
+                        is SocketEvent.UnreadCount      -> NotificationBadgeManager.set(event.count)
+                        is SocketEvent.NotificationNew  -> NotificationHelper.show(applicationContext, event.notification)
+                        else                            -> Unit
                     }
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra("open_notifications", false)) {
+            navController.navigate(R.id.notificationsFragment)
         }
     }
 
