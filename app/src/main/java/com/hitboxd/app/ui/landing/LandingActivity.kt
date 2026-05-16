@@ -73,11 +73,22 @@ class LandingActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         session = SessionManager(this)
 
-        // Ambas condiciones deben cumplirse: cookie presente en el jar (token real en disco
-        // encriptado) Y metadata de sesión válida. Si solo una es true, las cookies
-        // expiraron o los metadatos quedaron huérfanos — mostrar landing.
-        if (RetrofitClient.cookieJar.hasToken() && session.isLoggedIn()) { goHome(); return }
+        if (RetrofitClient.cookieJar.hasToken() && session.isLoggedIn()) {
+            lifecycleScope.launch {
+                val valid = try {
+                    RetrofitClient.api.getMyProfile().isSuccessful
+                } catch (_: Exception) {
+                    false
+                }
+                if (valid) goHome() else showLanding()
+            }
+            return
+        }
 
+        showLanding()
+    }
+
+    private fun showLanding() {
         setContentView(R.layout.activity_landing)
         setupButtons()
         setupRecycler()
@@ -131,7 +142,12 @@ class LandingActivity : AppCompatActivity() {
 
     private fun handleAuthSuccess(response: AuthResponse) {
         response.user?.let { u ->
-            session.saveUserData(u.id, u.username, null, null)
+            session.saveUserData(
+                id        = u.id,
+                username  = u.username,
+                role      = u.role,
+                avatarUrl = u.avatarUrl
+            )
         }
         goHome()
     }

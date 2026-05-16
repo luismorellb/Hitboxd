@@ -85,8 +85,12 @@ class PersistentCookieJar(context: Context) : CookieJar {
         prefs.edit { clear() }
     }
 
-    fun hasToken(): Boolean =
-        store.values.flatten().any { it.name == "token" }
+    fun hasToken(): Boolean {
+        val now = System.currentTimeMillis()
+        return store.values.flatten().any { cookie ->
+            cookie.name == "token" && (!cookie.persistent || cookie.expiresAt > now)
+        }
+    }
 
     // ── Serialización ────────────────────────────────────
     private fun serialize(c: Cookie): String =

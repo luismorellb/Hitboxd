@@ -38,7 +38,9 @@ data class AuthResponse(
 
 data class AuthUser(
     val id: Int = 0,
-    val username: String = ""
+    val username: String = "",
+    val role: String? = null,
+    @SerializedName("avatar_url") val avatarUrl: String? = null
 )
 
 // ─── REVIEW ──────────────────────────────────────────────
