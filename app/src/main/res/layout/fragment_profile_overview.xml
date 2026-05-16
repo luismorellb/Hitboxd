@@ -4,13 +4,22 @@
     android:background="@color/bg_light" android:padding="16dp">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="Favorite Games" android:textStyle="bold" android:textColor="@color/text_main"
+            android:text="@string/section_favorite_games" android:textStyle="bold" android:textColor="@color/text_main"
             android:textSize="16sp" android:layout_marginBottom="8dp"/>
+        <TextView
+            android:id="@+id/tvLibraryPrivate"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="@string/public_library_private"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:padding="16dp"
+            android:visibility="gone" />
         <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvFavoriteGames"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:nestedScrollingEnabled="false" android:layout_marginBottom="24dp"/>
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:text="Recent Reviews" android:textStyle="bold" android:textColor="@color/text_main"
+            android:text="@string/section_recent_reviews" android:textStyle="bold" android:textColor="@color/text_main"
             android:textSize="16sp" android:layout_marginBottom="8dp"/>
         <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvRecentReviews"
             android:layout_width="match_parent" android:layout_height="wrap_content"

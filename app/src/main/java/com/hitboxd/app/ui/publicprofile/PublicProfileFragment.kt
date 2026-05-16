@@ -31,15 +31,14 @@ import kotlinx.coroutines.launch
 class PublicProfileViewModel : ViewModel() {
 
     private val userRepo     = UserRepository()
-    private val activityRepo = ActivityRepository()
     private val reviewRepo   = ReviewRepository()
     private val listRepo     = ListRepository()
 
+    // TODO: Implementar GET /api/users/:id/library en el backend con control de visibilidad
+    // para poder mostrar la libreria publica de otros usuarios.
+
     private val _targetUser    = MutableStateFlow<User?>(null)
     val targetUser: StateFlow<User?> = _targetUser
-
-    private val _library       = MutableStateFlow<List<Activity>>(emptyList())
-    val library: StateFlow<List<Activity>> = _library
 
     private val _reviews       = MutableStateFlow<List<Review>>(emptyList())
     val reviews: StateFlow<List<Review>> = _reviews
@@ -53,17 +52,10 @@ class PublicProfileViewModel : ViewModel() {
     private val _followersCount = MutableStateFlow(0)
     val followersCount: StateFlow<Int> = _followersCount
 
-    private val _isLoading     = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
     var myUserId: Int = -1
-
-    val likedGames get() = _library.value.filter { it.isLiked }
-    val favoriteGames get() = _library.value.filter { it.isFavorite }
 
     fun load(username: String) {
         viewModelScope.launch {
-            _isLoading.value = true
             when (val r = userRepo.getUserByUsername(username)) {
                 is NetworkResult.Success -> {
                     val user = r.data
@@ -91,16 +83,9 @@ class PublicProfileViewModel : ViewModel() {
                             else -> {}
                         }
                     }
-                    launch {
-                        when (val r2 = activityRepo.getUserLibrary()) {
-                            is NetworkResult.Success -> _library.value = r2.data
-                            else -> {}
-                        }
-                    }
                 }
                 else -> {}
             }
-            _isLoading.value = false
         }
     }
 
@@ -205,59 +190,26 @@ class PublicProfileFragment : Fragment() {
 
 // ─── TAB 0: OVERVIEW ─────────────────────────────────────
 class PubOverviewFragment : Fragment() {
-    private val vm: PublicProfileViewModel by viewModels({ requireParentFragment() })
 
     override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, s: Bundle?): View =
         inflater.inflate(R.layout.fragment_profile_overview, c, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val adapter = GameCardAdapter { game ->
-            findNavController().navigate(
-                R.id.action_publicProfileFragment_to_gameDetailFragment,
-                bundleOf("slug" to game.slug)
-            )
-        }
-        // Ocultar reseñas recientes en perfil público (solo favoritos)
         view.findViewById<View>(R.id.rvRecentReviews).isVisible = false
-        view.findViewById<RecyclerView>(R.id.rvFavoriteGames).apply {
-            layoutManager = GridLayoutManager(context, 2)
-            this.adapter  = adapter
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.library.collect {
-                adapter.submitList(vm.favoriteGames.take(4).map { a ->
-                    Game(idGame = a.idGame, title = a.title ?: "", slug = a.slug ?: "", coverUrl = a.coverUrl)
-                })
-            }
-        }
+        view.findViewById<View>(R.id.rvFavoriteGames).isVisible = false
+        view.findViewById<TextView>(R.id.tvLibraryPrivate).isVisible = true
     }
 }
 
 // ─── TAB 1: GAMES ────────────────────────────────────────
 class PubGamesFragment : Fragment() {
-    private val vm: PublicProfileViewModel by viewModels({ requireParentFragment() })
 
     override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, s: Bundle?): View =
         inflater.inflate(R.layout.fragment_games_tab, c, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val adapter = GameCardAdapter { game ->
-            findNavController().navigate(
-                R.id.action_publicProfileFragment_to_gameDetailFragment,
-                bundleOf("slug" to game.slug)
-            )
-        }
-        view.findViewById<RecyclerView>(R.id.rvGames).apply {
-            layoutManager = GridLayoutManager(context, 3)
-            this.adapter  = adapter
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.library.collect { list ->
-                adapter.submitList(list.map {
-                    Game(idGame = it.idGame, title = it.title ?: "", slug = it.slug ?: "", coverUrl = it.coverUrl)
-                })
-            }
-        }
+        view.findViewById<View>(R.id.rvGames).isVisible = false
+        view.findViewById<TextView>(R.id.tvLibraryPrivate).isVisible = true
     }
 }
 
@@ -309,28 +261,12 @@ class PubListsFragment : Fragment() {
 
 // ─── TAB 4: LIKES ────────────────────────────────────────
 class PubLikesFragment : Fragment() {
-    private val vm: PublicProfileViewModel by viewModels({ requireParentFragment() })
 
     override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, s: Bundle?): View =
         inflater.inflate(R.layout.fragment_liked_games_tab, c, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val adapter = GameCardAdapter { game ->
-            findNavController().navigate(
-                R.id.action_publicProfileFragment_to_gameDetailFragment,
-                bundleOf("slug" to game.slug)
-            )
-        }
-        view.findViewById<RecyclerView>(R.id.rvLikedGames).apply {
-            layoutManager = GridLayoutManager(context, 3)
-            this.adapter  = adapter
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.library.collect {
-                adapter.submitList(vm.likedGames.map { a ->
-                    Game(idGame = a.idGame, title = a.title ?: "", slug = a.slug ?: "", coverUrl = a.coverUrl)
-                })
-            }
-        }
+        view.findViewById<View>(R.id.rvLikedGames).isVisible = false
+        view.findViewById<TextView>(R.id.tvLibraryPrivate).isVisible = true
     }
 }
