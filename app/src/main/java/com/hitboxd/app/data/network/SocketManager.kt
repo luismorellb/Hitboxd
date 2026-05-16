@@ -17,6 +17,18 @@ sealed class SocketEvent {
     data class ReadOne(val id: Int) : SocketEvent()
     object Connected : SocketEvent()
     object Disconnected : SocketEvent()
+
+    // review events
+    data class ReviewLikeChanged(val idReview: Int, val count: Int, val actorId: Int) : SocketEvent()
+    data class ReviewCreated(val review: com.hitboxd.app.data.model.Review) : SocketEvent()
+    data class ReviewDeleted(val idReview: Int) : SocketEvent()
+
+    // presence
+    data class GamePresence(val gameId: Int, val count: Int) : SocketEvent()
+
+    // moderation
+    data class ModerationReportNew(val review: com.hitboxd.app.data.model.Review) : SocketEvent()
+    data class ModerationResolved(val idReview: Int) : SocketEvent()
 }
 
 object SocketManager {
@@ -80,8 +92,46 @@ object SocketManager {
                     _events.tryEmit(SocketEvent.ReadOne(id))
                 }
             }
+            on("review:like_changed") { args ->
+                val obj = args.getOrNull(0) as? JSONObject ?: return@on
+                _events.tryEmit(SocketEvent.ReviewLikeChanged(
+                    obj.getInt("id_review"),
+                    obj.getInt("count"),
+                    obj.optInt("actor_id", -1)
+                ))
+            }
+            on("review:created") { args ->
+                val obj = args.getOrNull(0) as? JSONObject ?: return@on
+                try {
+                    val review = gson.fromJson(obj.toString(), com.hitboxd.app.data.model.Review::class.java)
+                    _events.tryEmit(SocketEvent.ReviewCreated(review))
+                } catch (_: Exception) {}
+            }
+            on("review:deleted") { args ->
+                val obj = args.getOrNull(0) as? JSONObject ?: return@on
+                _events.tryEmit(SocketEvent.ReviewDeleted(obj.getInt("id_review")))
+            }
+            on("game:presence") { args ->
+                val obj = args.getOrNull(0) as? JSONObject ?: return@on
+                _events.tryEmit(SocketEvent.GamePresence(obj.getInt("gameId"), obj.getInt("count")))
+            }
+            on("moderation:report_new") { args ->
+                val obj = args.getOrNull(0) as? JSONObject ?: return@on
+                try {
+                    val review = gson.fromJson(obj.toString(), com.hitboxd.app.data.model.Review::class.java)
+                    _events.tryEmit(SocketEvent.ModerationReportNew(review))
+                } catch (_: Exception) {}
+            }
+            on("moderation:resolved") { args ->
+                val obj = args.getOrNull(0) as? JSONObject ?: return@on
+                _events.tryEmit(SocketEvent.ModerationResolved(obj.getInt("id_review")))
+            }
             connect()
         }
+    }
+
+    fun emit(event: String, data: JSONObject) {
+        socket?.emit(event, data)
     }
 
     fun disconnect() {

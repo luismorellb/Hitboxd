@@ -7,8 +7,10 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,6 +23,8 @@ import com.hitboxd.app.common.adapter.AdminUserAdapter
 import com.hitboxd.app.common.adapter.ReportedReviewAdapter
 import com.hitboxd.app.common.dialog.ReviewDetailDialogFragment
 import com.hitboxd.app.data.model.*
+import com.hitboxd.app.data.network.SocketEvent
+import com.hitboxd.app.data.network.SocketManager
 import com.hitboxd.app.data.repository.AdminRepository
 import com.hitboxd.app.data.repository.GameRepository
 import com.hitboxd.app.data.repository.ReviewRepository
@@ -44,12 +48,6 @@ class AdminViewModel : ViewModel() {
 
     private val _reportedReviews = MutableStateFlow<List<Review>>(emptyList())
     val reportedReviews: StateFlow<List<Review>> = _reportedReviews
-
-    private val _totalUsers = MutableStateFlow(0)
-    val totalUsers: StateFlow<Int> = _totalUsers
-
-    private val _adminUserId = MutableStateFlow(-1)
-    val adminUserId: StateFlow<Int> = _adminUserId
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -148,18 +146,6 @@ class AdminViewModel : ViewModel() {
                     else -> {}
                 }
             }
-            launch {
-                when (val r = userRepo.getUserCount()) {
-                    is NetworkResult.Success -> _totalUsers.value = r.data.count
-                    else -> {}
-                }
-            }
-            launch {
-                when (val r = userRepo.getMyProfile()) {
-                    is NetworkResult.Success -> _adminUserId.value = r.data.idUser
-                    else -> {}
-                }
-            }
             launch { loadUsers() }
             launch { loadGlobalStats() }
             _isLoading.value = false
@@ -191,6 +177,17 @@ class AdminViewModel : ViewModel() {
             }
         }
     }
+
+    fun upsertReportedReview(review: Review) {
+        val current = _reportedReviews.value.toMutableList()
+        val idx = current.indexOfFirst { it.idReview == review.idReview }
+        if (idx >= 0) current[idx] = review else current.add(0, review)
+        _reportedReviews.value = current
+    }
+
+    fun removeReportedReview(reviewId: Int) {
+        _reportedReviews.value = _reportedReviews.value.filter { it.idReview != reviewId }
+    }
 }
 
 // ─── FRAGMENT ────────────────────────────────────────────
@@ -199,6 +196,7 @@ class AdminFragment : Fragment() {
     private val vm: AdminViewModel by viewModels()
     private lateinit var session: SessionManager
     private var searchJob: Job? = null
+    private var lastReportToastMs = 0L
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -219,8 +217,32 @@ class AdminFragment : Fragment() {
         setupGamesRecycler(view)
         setupReportedRecycler(view)
         observeVm(view)
+        observeAdminSocket()
 
         vm.loadAll()
+    }
+
+    private fun observeAdminSocket() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                SocketManager.events.collect { event ->
+                    when (event) {
+                        is SocketEvent.ModerationReportNew -> {
+                            vm.upsertReportedReview(event.review)
+                            val now = System.currentTimeMillis()
+                            if (now - lastReportToastMs > 5_000) {
+                                lastReportToastMs = now
+                                Snackbar.make(requireView(), "New reported review", Snackbar.LENGTH_SHORT).show()
+                            }
+                        }
+                        is SocketEvent.ModerationResolved -> {
+                            vm.removeReportedReview(event.idReview)
+                        }
+                        else -> {}
+                    }
+                }
+            }
+        }
     }
 
     private fun setupUsersRecycler(view: View) {

@@ -8,8 +8,10 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
@@ -22,12 +24,15 @@ import com.hitboxd.app.common.dialog.ReportDialogFragment
 import com.hitboxd.app.common.dialog.ReviewDialogFragment
 import com.hitboxd.app.data.model.*
 import com.hitboxd.app.data.repository.*
+import com.hitboxd.app.data.network.SocketEvent
+import com.hitboxd.app.data.network.SocketManager
 import com.hitboxd.app.utils.DateUtils
 import com.hitboxd.app.utils.ImageUtils
 import com.hitboxd.app.utils.SessionManager
 import com.hitboxd.app.utils.StatusUtils
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 // ─── VIEWMODEL ───────────────────────────────────────────
 class GameDetailViewModel : ViewModel() {
@@ -156,6 +161,20 @@ class GameDetailViewModel : ViewModel() {
     fun reportReview(reviewId: Int, reason: String) {
         viewModelScope.launch { reviewRepo.reportReview(reviewId, reason) }
     }
+
+    fun updateReviewLikeCount(reviewId: Int, count: Int) {
+        _reviews.value = _reviews.value.map {
+            if (it.idReview == reviewId) it.copy(likes = count) else it
+        }
+    }
+
+    fun prependReview(review: Review) {
+        _reviews.value = listOf(review.copy(showContent = !review.hasSpoilers)) + _reviews.value
+    }
+
+    fun removeReview(reviewId: Int) {
+        _reviews.value = _reviews.value.filter { it.idReview != reviewId }
+    }
 }
 
 // ─── FRAGMENT ────────────────────────────────────────────
@@ -165,6 +184,9 @@ class GameDetailFragment : Fragment() {
     private lateinit var session: SessionManager
     private lateinit var reviewAdapter: ReviewAdapter
     private lateinit var similarAdapter: GameCardAdapter
+    private lateinit var tvViewers: TextView
+
+    private val currentUserId by lazy { SessionManager(requireContext()).getUserId() }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -174,11 +196,59 @@ class GameDetailFragment : Fragment() {
         session = SessionManager(requireContext())
         val slug = arguments?.getString("slug") ?: return
 
+        tvViewers = view.findViewById(R.id.tvViewers)
+
         setupReviews(view)
         setupSimilarGames(view)
         setupButtons(view)
         observeVm(view)
+        observeSocketEvents()
         vm.load(slug)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        vm.game.value?.idGame?.let { gameId ->
+            SocketManager.emit("game:join", JSONObject().put("gameId", gameId))
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        vm.game.value?.idGame?.let { gameId ->
+            SocketManager.emit("game:leave", JSONObject().put("gameId", gameId))
+        }
+    }
+
+    private fun observeSocketEvents() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                SocketManager.events.collect { event ->
+                    when (event) {
+                        is SocketEvent.ReviewLikeChanged -> {
+                            if (event.actorId == currentUserId) return@collect
+                            vm.updateReviewLikeCount(event.idReview, event.count)
+                        }
+                        is SocketEvent.ReviewCreated -> {
+                            if (event.review.idUser == currentUserId) return@collect
+                            if (event.review.idGame == vm.game.value?.idGame) {
+                                vm.prependReview(event.review)
+                            }
+                        }
+                        is SocketEvent.ReviewDeleted -> {
+                            vm.removeReview(event.idReview)
+                        }
+                        is SocketEvent.GamePresence -> {
+                            if (event.gameId == vm.game.value?.idGame) {
+                                tvViewers.isVisible = event.count > 1
+                                tvViewers.text = getString(R.string.game_viewers, event.count)
+                            }
+                        }
+                        else -> {}
+                    }
+                }
+            }
+        }
     }
 
     private fun setupReviews(view: View) {

@@ -137,6 +137,7 @@
     <string name="avg_rating_none">—</string>
     <string name="game_developer_year">%1$s • %2$s</string>
     <string name="game_avg_rating">Average: %1$s stars (%2$d ratings)</string>
+    <string name="game_viewers">%d viewing now</string>
     <string name="format_percentage">%d%%</string>
     <string name="format_rating_label">%.1f</string>
     <string name="streak_fire">🔥</string>
