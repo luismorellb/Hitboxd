@@ -106,6 +106,7 @@
 
     <string name="no_reviews_yet">No hay reseñas todavía. ¡Sé el primero!</string>
     <string name="public_library_private">El historial de juegos de este usuario es privado.</string>
+    <string name="recommendations_empty">Juega mas titulos para recibir recomendaciones personalizadas.</string>
     <string name="section_favorite_games">Favorite Games</string>
     <string name="section_recent_reviews">Recent Reviews</string>
 

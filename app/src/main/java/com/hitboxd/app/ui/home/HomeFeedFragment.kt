@@ -7,8 +7,10 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -64,6 +66,10 @@ class HomeFeedViewModel : ViewModel() {
     private val _followError     = MutableStateFlow<String?>(null)
     val followError: StateFlow<String?> = _followError
 
+    private val _errorMessage    = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage
+    fun clearError() { _errorMessage.value = null }
+
     fun loadAll() {
         viewModelScope.launch {
             _isRefreshing.value = true
@@ -118,6 +124,7 @@ class HomeFeedViewModel : ViewModel() {
     private suspend fun fetchNew() {
         when (val r = gameRepo.getNewReleases()) {
             is NetworkResult.Success -> _newGames.value = r.data
+            is NetworkResult.Error   -> _errorMessage.value = r.message
             else -> {}
         }
     }
@@ -125,6 +132,7 @@ class HomeFeedViewModel : ViewModel() {
     private suspend fun fetchPopular(genre: String? = null) {
         when (val r = gameRepo.getPopular(genre)) {
             is NetworkResult.Success -> _popularGames.value = r.data
+            is NetworkResult.Error   -> _errorMessage.value = r.message
             else -> {}
         }
     }
@@ -132,6 +140,7 @@ class HomeFeedViewModel : ViewModel() {
     private suspend fun fetchFeed() {
         when (val r = activityRepo.getFeed()) {
             is NetworkResult.Success -> _friendsActivity.value = r.data
+            is NetworkResult.Error   -> _errorMessage.value = r.message
             else -> {}
         }
     }
@@ -230,42 +239,79 @@ class HomeFeedFragment : Fragment() {
 
         // Observe
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.isRefreshing.collect { refreshing ->
-                view.findViewById<SwipeRefreshLayout>(R.id.swipeRefresh).isRefreshing = refreshing
-            }
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.username.collect { name ->
-                view.findViewById<TextView>(R.id.tvWelcome).text =
-                    getString(R.string.welcome_back, name)
-            }
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.streak.collect { streak ->
-                val llStreak = view.findViewById<LinearLayout>(R.id.llStreak)
-                if (streak > 0) {
-                    llStreak.isVisible = true
-                    view.findViewById<TextView>(R.id.tvStreakCount).text = streak.toString()
-                } else {
-                    llStreak.isVisible = false
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.isRefreshing.collect { refreshing ->
+                    view.findViewById<SwipeRefreshLayout>(R.id.swipeRefresh).isRefreshing = refreshing
                 }
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.recommended.collect { games ->
-                view.findViewById<View>(R.id.llRecommendedSection).isVisible = games.isNotEmpty()
-                recommendedAdapter.submitList(games)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.username.collect { name ->
+                    view.findViewById<TextView>(R.id.tvWelcome).text =
+                        getString(R.string.welcome_back, name)
+                }
             }
         }
-        viewLifecycleOwner.lifecycleScope.launch { vm.friendsActivity.collect { feedAdapter.submitList(it) } }
-        viewLifecycleOwner.lifecycleScope.launch { vm.newGames.collect       { newAdapter.submitList(it) } }
-        viewLifecycleOwner.lifecycleScope.launch { vm.popularGames.collect   { popularAdapter.submitList(it) } }
-        viewLifecycleOwner.lifecycleScope.launch { vm.suggestions.collect    { suggestionsAdapter.submitList(it) } }
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.followError.collect { error ->
-                error ?: return@collect
-                Snackbar.make(view, error, Snackbar.LENGTH_SHORT).show()
-                vm.clearFollowError()
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.streak.collect { streak ->
+                    val llStreak = view.findViewById<LinearLayout>(R.id.llStreak)
+                    if (streak > 0) {
+                        llStreak.isVisible = true
+                        view.findViewById<TextView>(R.id.tvStreakCount).text = streak.toString()
+                    } else {
+                        llStreak.isVisible = false
+                    }
+                }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.recommended.collect { games ->
+                    view.findViewById<View>(R.id.llRecommendedSection).isVisible = true
+                    view.findViewById<View>(R.id.rvRecommended).isVisible = games.isNotEmpty()
+                    view.findViewById<View>(R.id.tvRecommendationsEmpty).isVisible = games.isEmpty()
+                    recommendedAdapter.submitList(games)
+                }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.friendsActivity.collect { feedAdapter.submitList(it) }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.newGames.collect { newAdapter.submitList(it) }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.popularGames.collect { popularAdapter.submitList(it) }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.suggestions.collect { suggestionsAdapter.submitList(it) }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.followError.collect { error ->
+                    error ?: return@collect
+                    Snackbar.make(view, error, Snackbar.LENGTH_SHORT).show()
+                    vm.clearFollowError()
+                }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.errorMessage.collect { msg ->
+                    msg ?: return@collect
+                    Snackbar.make(view, msg, Snackbar.LENGTH_SHORT).show()
+                    vm.clearError()
+                }
             }
         }
 
