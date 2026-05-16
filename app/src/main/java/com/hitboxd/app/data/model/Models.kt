@@ -290,6 +290,22 @@ data class GameStatsResponse(
     @SerializedName("status_distribution") val statusDistribution: List<StatusDistributionEntry> = emptyList()
 )
 
+// ─── PUBLIC ACTIVITY (libreria de otro usuario) ──────────
+data class PublicActivity(
+    @SerializedName("id_game")        val idGame: Int = 0,
+    val title: String = "",
+    val slug: String = "",
+    @SerializedName("cover_url")      val coverUrl: String? = null,
+    @SerializedName("background_url") val backgroundUrl: String? = null,
+    val developer: String? = null,
+    @SerializedName("release_date")   val releaseDate: String? = null,
+    val status: String? = null,
+    val rating: Float? = null,
+    @SerializedName("is_favorite")    val isFavorite: Boolean = false,
+    @SerializedName("is_liked")       val isLiked: Boolean = false,
+    @SerializedName("added_at")       val addedAt: String? = null
+)
+
 // ─── UI STATE ────────────────────────────────────────────
 data class SuggestionItem(val user: User, val isFollowing: Boolean = false)
 

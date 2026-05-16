@@ -34,9 +34,6 @@ class PublicProfileViewModel : ViewModel() {
     private val reviewRepo   = ReviewRepository()
     private val listRepo     = ListRepository()
 
-    // TODO: Implementar GET /api/users/:id/library en el backend con control de visibilidad
-    // para poder mostrar la libreria publica de otros usuarios.
-
     private val _targetUser    = MutableStateFlow<User?>(null)
     val targetUser: StateFlow<User?> = _targetUser
 
@@ -51,6 +48,9 @@ class PublicProfileViewModel : ViewModel() {
 
     private val _followersCount = MutableStateFlow(0)
     val followersCount: StateFlow<Int> = _followersCount
+
+    private val _publicLibrary = MutableStateFlow<List<PublicActivity>>(emptyList())
+    val publicLibrary: StateFlow<List<PublicActivity>> = _publicLibrary
 
     var myUserId: Int = -1
 
@@ -80,6 +80,12 @@ class PublicProfileViewModel : ViewModel() {
                     launch {
                         when (val r2 = listRepo.getUserLists(user.idUser)) {
                             is NetworkResult.Success -> _userLists.value = r2.data
+                            else -> {}
+                        }
+                    }
+                    launch {
+                        when (val r2 = userRepo.getUserPublicLibrary(user.idUser)) {
+                            is NetworkResult.Success -> _publicLibrary.value = r2.data
                             else -> {}
                         }
                     }
@@ -203,13 +209,33 @@ class PubOverviewFragment : Fragment() {
 
 // ─── TAB 1: GAMES ────────────────────────────────────────
 class PubGamesFragment : Fragment() {
+    private val vm: PublicProfileViewModel by viewModels({ requireParentFragment() })
 
     override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, s: Bundle?): View =
         inflater.inflate(R.layout.fragment_games_tab, c, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        view.findViewById<View>(R.id.rvGames).isVisible = false
-        view.findViewById<TextView>(R.id.tvLibraryPrivate).isVisible = true
+        val adapter = GameCardAdapter { game ->
+            findNavController().navigate(
+                R.id.action_publicProfileFragment_to_gameDetailFragment,
+                bundleOf("slug" to game.slug)
+            )
+        }
+        view.findViewById<RecyclerView>(R.id.rvGames).apply {
+            layoutManager = GridLayoutManager(context, 3)
+            this.adapter  = adapter
+        }
+        view.findViewById<TextView>(R.id.tvLibraryPrivate).isVisible = false
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.publicLibrary.collect { library ->
+                val games = library.map { a ->
+                    Game(idGame = a.idGame, title = a.title, slug = a.slug, coverUrl = a.coverUrl)
+                }
+                adapter.submitList(games)
+                view.findViewById<View>(R.id.rvGames).isVisible = games.isNotEmpty()
+            }
+        }
     }
 }
 
@@ -260,6 +286,8 @@ class PubListsFragment : Fragment() {
 }
 
 // ─── TAB 4: LIKES ────────────────────────────────────────
+// is_liked es informacion privada — el backend devuelve FALSE para perfiles ajenos;
+// mostramos mensaje fijo independientemente del valor del campo.
 class PubLikesFragment : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, s: Bundle?): View =
@@ -267,6 +295,9 @@ class PubLikesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         view.findViewById<View>(R.id.rvLikedGames).isVisible = false
-        view.findViewById<TextView>(R.id.tvLibraryPrivate).isVisible = true
+        view.findViewById<TextView>(R.id.tvLibraryPrivate).apply {
+            isVisible = true
+            setText(R.string.public_library_private)
+        }
     }
 }

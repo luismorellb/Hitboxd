@@ -74,6 +74,9 @@ interface ApiService {
     @GET("users/{username}")
     suspend fun getUserByUsername(@Path("username") username: String): Response<User>
 
+    @GET("users/{id}/library")
+    suspend fun getUserPublicLibrary(@Path("id") userId: Int): Response<List<PublicActivity>>
+
     // ─── GAMES (/api/games) ──────────────────────────────
     @GET("games/trending")
     suspend fun getTrendingGames(): Response<List<Game>>

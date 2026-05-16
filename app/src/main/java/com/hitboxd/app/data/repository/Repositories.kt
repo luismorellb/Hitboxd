@@ -93,6 +93,9 @@ class UserRepository {
 
     suspend fun banUser(userId: Int) = safeCall { api.banUser(userId) }
     suspend fun unbanUser(userId: Int) = safeCall { api.unbanUser(userId) }
+
+    suspend fun getUserPublicLibrary(userId: Int) =
+        safeCall { api.getUserPublicLibrary(userId) }
 }
 
 // ─── GAME REPOSITORY ─────────────────────────────────────
