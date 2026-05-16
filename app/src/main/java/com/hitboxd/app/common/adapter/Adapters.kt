@@ -121,7 +121,9 @@ class ActivityCardAdapter(private val onClick: (Activity) -> Unit) :
 
     companion object {
         private val DIFF = object : DiffUtil.ItemCallback<Activity>() {
-            override fun areItemsTheSame(a: Activity, b: Activity) = a.idActivity == b.idActivity
+            // Neither feed path returns id_activity; use user+game as a stable unique key.
+            override fun areItemsTheSame(a: Activity, b: Activity) =
+                a.idUser == b.idUser && a.idGame == b.idGame
             override fun areContentsTheSame(a: Activity, b: Activity) = a == b
         }
     }
