@@ -143,7 +143,12 @@ class ActivityRepository {
         isFavorite: Boolean? = null,
         isLiked: Boolean? = null
     ) = safeCall {
-        api.logActivity(ActivityRequest(gameId, status, rating, isFavorite, isLiked))
+        val body = mutableMapOf<String, Any?>("gameId" to gameId)
+        if (status     != null) body["status"]     = status
+        if (rating     != null) body["rating"]     = rating
+        if (isFavorite != null) body["isFavorite"] = isFavorite
+        if (isLiked    != null) body["isLiked"]    = isLiked
+        api.logActivityMap(body)
     }
 
     suspend fun checkStatus(gameId: Int) =

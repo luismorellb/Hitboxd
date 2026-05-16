@@ -120,7 +120,7 @@ interface ApiService {
 
     // ─── ACTIVITY (/api/activity) ────────────────────────
     @POST("activity")
-    suspend fun logActivity(@Body body: ActivityRequest): Response<MessageResponse>
+    suspend fun logActivityMap(@Body body: Map<String, @JvmSuppressWildcards Any?>): Response<MessageResponse>
 
     @GET("activity/watchlist")
     suspend fun getWatchlist(): Response<List<Game>>

@@ -138,13 +138,6 @@ data class RegisterRequest(
     val password: String
 )
 
-data class ActivityRequest(
-    val gameId: Int,
-    val status: String? = null,
-    val rating: Float? = null,
-    val isFavorite: Boolean? = null,
-    val isLiked: Boolean? = null
-)
 
 data class ReviewRequest(
     @SerializedName("id_game")      val idGame: Int,
