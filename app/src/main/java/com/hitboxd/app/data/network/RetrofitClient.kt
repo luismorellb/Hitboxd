@@ -1,11 +1,26 @@
 package com.hitboxd.app.data.network
 
 import android.content.Context
+import com.google.gson.GsonBuilder
+import com.google.gson.TypeAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonToken
+import com.google.gson.stream.JsonWriter
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+
+private class FlexibleBooleanAdapter : TypeAdapter<Boolean>() {
+    override fun write(out: JsonWriter, value: Boolean) { out.value(value) }
+    override fun read(reader: JsonReader): Boolean = when (reader.peek()) {
+        JsonToken.BOOLEAN -> reader.nextBoolean()
+        JsonToken.NUMBER  -> reader.nextInt() != 0
+        JsonToken.NULL    -> { reader.nextNull(); false }
+        else              -> { reader.skipValue(); false }
+    }
+}
 
 object RetrofitClient {
 
@@ -39,10 +54,15 @@ object RetrofitClient {
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()
 
+        val gson = GsonBuilder()
+            .registerTypeAdapter(Boolean::class.javaPrimitiveType, FlexibleBooleanAdapter())
+            .registerTypeAdapter(Boolean::class.javaObjectType, FlexibleBooleanAdapter())
+            .create()
+
         api = Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(client)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
             .create(ApiService::class.java)
     }
