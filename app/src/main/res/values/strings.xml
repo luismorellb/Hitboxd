@@ -104,6 +104,8 @@
     <string name="section_popular">Popular on Hitboxd</string>
     <string name="section_new_releases">New Releases</string>
 
+    <string name="no_reviews_yet">No hay reseñas todavía. ¡Sé el primero!</string>
+
     <!-- Game detail sections -->
     <string name="section_genres">Genres</string>
     <string name="section_rating_distribution">Rating distribution</string>

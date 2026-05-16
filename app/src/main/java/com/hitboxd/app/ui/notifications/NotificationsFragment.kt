@@ -229,6 +229,7 @@ class NotificationsFragment : Fragment() {
                                 tvOfflineBanner.isVisible = true
                             }
                         }
+                        else -> {}
                     }
                 }
             }

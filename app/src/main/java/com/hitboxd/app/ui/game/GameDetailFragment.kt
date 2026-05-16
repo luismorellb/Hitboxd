@@ -30,6 +30,9 @@ import com.hitboxd.app.utils.DateUtils
 import com.hitboxd.app.utils.ImageUtils
 import com.hitboxd.app.utils.SessionManager
 import com.hitboxd.app.utils.StatusUtils
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -66,10 +69,14 @@ class GameDetailViewModel : ViewModel() {
                 is NetworkResult.Success -> {
                     _game.value = r.data
                     val id = r.data.idGame
-                    launch { loadReviews(id) }
-                    launch { loadStatus(id) }
-                    launch { loadExtras(id) }
-                    launch { loadStats(id) }
+                    coroutineScope {
+                        awaitAll(
+                            async { loadReviews(id) },
+                            async { loadStatus(id) },
+                            async { loadExtras(id) },
+                            async { loadStats(id) }
+                        )
+                    }
                 }
                 else -> {}
             }
@@ -331,7 +338,15 @@ class GameDetailFragment : Fragment() {
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.reviews.collect { reviewAdapter.submitList(it) }
+            vm.reviews.collect { reviews ->
+                val tvEmpty = view.findViewById<TextView>(R.id.tvEmptyReviews)
+                val rvReviews = view.findViewById<RecyclerView>(R.id.rvReviews)
+                reviewAdapter.submitList(reviews) {
+                    rvReviews.requestLayout()
+                }
+                tvEmpty.isVisible = reviews.isEmpty()
+                rvReviews.isVisible = reviews.isNotEmpty()
+            }
         }
         viewLifecycleOwner.lifecycleScope.launch {
             vm.status.collect { s ->

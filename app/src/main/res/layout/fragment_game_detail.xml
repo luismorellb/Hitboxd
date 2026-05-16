@@ -67,6 +67,16 @@
                 </LinearLayout>
 
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/section_reviews" android:textStyle="bold" android:textSize="18sp" android:textColor="@color/text_main" android:layout_marginTop="24dp" android:layout_marginBottom="8dp" />
+                <TextView
+                    android:id="@+id/tvEmptyReviews"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/no_reviews_yet"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    android:gravity="center"
+                    android:padding="16dp"
+                    android:visibility="gone" />
                 <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvReviews" android:layout_width="match_parent" android:layout_height="wrap_content" android:nestedScrollingEnabled="false" />
             </LinearLayout>
         </LinearLayout>
