@@ -45,9 +45,6 @@ class ProfileViewModel : ViewModel() {
     private val _reviews       = MutableStateFlow<List<Review>>(emptyList())
     val reviews: StateFlow<List<Review>> = _reviews
 
-    private val _feed          = MutableStateFlow<List<Activity>>(emptyList())
-    val feed: StateFlow<List<Activity>> = _feed
-
     private val _userLists     = MutableStateFlow<List<UserList>>(emptyList())
     val userLists: StateFlow<List<UserList>> = _userLists
 
@@ -75,7 +72,6 @@ class ProfileViewModel : ViewModel() {
                     val uid = r.data.idUser
                     launch { loadLibrary() }
                     launch { loadReviews(uid) }
-                    launch { loadFeed() }
                     launch { loadLists(uid) }
                     launch { loadWatchlist() }
                     launch { loadStats() }
@@ -95,13 +91,6 @@ class ProfileViewModel : ViewModel() {
     private suspend fun loadReviews(uid: Int) {
         when (val r = reviewRepo.getUserReviews(uid)) {
             is NetworkResult.Success -> _reviews.value = r.data.sortedByDescending { it.createdAt }
-            else -> {}
-        }
-    }
-
-    private suspend fun loadFeed() {
-        when (val r = activityRepo.getFeed()) {
-            is NetworkResult.Success -> _feed.value = r.data
             else -> {}
         }
     }
@@ -287,7 +276,7 @@ class ActivityFeedTabFragment : Fragment() {
             this.adapter  = adapter
         }
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.feed.collect { adapter.submitList(it) }
+            vm.library.collect { adapter.submitList(it) }
         }
     }
 }
