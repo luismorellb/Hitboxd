@@ -68,7 +68,7 @@
 
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/section_reviews" android:textStyle="bold" android:textSize="18sp" android:textColor="@color/text_main" android:layout_marginTop="24dp" android:layout_marginBottom="8dp" />
                 <TextView
-                    android:id="@+id/tvEmptyReviews"
+                    android:id="@+id/tvNoReviews"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/no_reviews_yet"

@@ -62,6 +62,9 @@ class GameDetailViewModel : ViewModel() {
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _reviewsLoading = MutableStateFlow(false)
+    val reviewsLoading: StateFlow<Boolean> = _reviewsLoading
+
     fun load(slug: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -85,12 +88,14 @@ class GameDetailViewModel : ViewModel() {
     }
 
     private suspend fun loadReviews(gameId: Int) {
+        _reviewsLoading.value = true
         when (val r = reviewRepo.getGameReviews(gameId)) {
             is NetworkResult.Success -> _reviews.value = r.data.map {
                 it.copy(showContent = !it.hasSpoilers)
             }
             else -> {}
         }
+        _reviewsLoading.value = false
     }
 
     private suspend fun loadStatus(gameId: Int) {
@@ -319,60 +324,68 @@ class GameDetailFragment : Fragment() {
         val contentRoot = view.findViewById<View>(R.id.contentRoot)
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.isLoading.collect { loading ->
-                progressBar.isVisible = loading
-                contentRoot.isVisible = !loading
-            }
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.game.collect { game ->
-                game ?: return@collect
-                view.findViewById<TextView>(R.id.tvGameTitle).text   = game.title
-                view.findViewById<TextView>(R.id.tvDeveloper).text   =
-                    getString(R.string.game_developer_year,
-                        game.developer ?: getString(R.string.developer_unknown),
-                        DateUtils.extractYear(game.releaseDate))
-                view.findViewById<TextView>(R.id.tvDescription).text = game.description ?: "No description available."
-                ImageUtils.loadBanner(requireContext(), game.backgroundUrl, view.findViewById(R.id.imgBanner))
-                ImageUtils.loadGameCover(requireContext(), game.coverUrl, view.findViewById(R.id.imgCover))
-            }
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.reviews.collect { reviews ->
-                val tvEmpty = view.findViewById<TextView>(R.id.tvEmptyReviews)
-                val rvReviews = view.findViewById<RecyclerView>(R.id.rvReviews)
-                reviewAdapter.submitList(reviews) {
-                    rvReviews.requestLayout()
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.isLoading.collect { loading ->
+                    progressBar.isVisible = loading
+                    contentRoot.isVisible = !loading
                 }
-                tvEmpty.isVisible = reviews.isEmpty()
-                rvReviews.isVisible = reviews.isNotEmpty()
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.status.collect { s ->
-                view.findViewById<Button>(R.id.btnPlayed).isSelected    = s.status == "played"
-                view.findViewById<Button>(R.id.btnPending).isSelected   = s.status == "plan_to_play"
-                view.findViewById<Button>(R.id.btnAbandoned).isSelected = s.status == "dropped"
-                view.findViewById<ImageButton>(R.id.btnLike).setImageResource(
-                    if (s.isLiked) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
-                )
-                view.findViewById<ImageButton>(R.id.btnFav).setImageResource(
-                    if (s.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_empty
-                )
-                view.findViewById<RatingBar>(R.id.ratingBar).rating = s.rating ?: 0f
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.game.collect { game ->
+                    game ?: return@collect
+                    view.findViewById<TextView>(R.id.tvGameTitle).text   = game.title
+                    view.findViewById<TextView>(R.id.tvDeveloper).text   =
+                        getString(R.string.game_developer_year,
+                            game.developer ?: getString(R.string.developer_unknown),
+                            DateUtils.extractYear(game.releaseDate))
+                    view.findViewById<TextView>(R.id.tvDescription).text = game.description ?: "No description available."
+                    ImageUtils.loadBanner(requireContext(), game.backgroundUrl, view.findViewById(R.id.imgBanner))
+                    ImageUtils.loadGameCover(requireContext(), game.coverUrl, view.findViewById(R.id.imgCover))
+                }
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.extras.collect { extras ->
-                extras ?: return@collect
-                renderGenres(view, extras.genres)
-                renderSimilarGames(view, extras.similarGames)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                combine(vm.reviews, vm.reviewsLoading) { reviews, loading -> reviews to loading }
+                    .collect { (reviews, loading) ->
+                        reviewAdapter.submitList(reviews)
+                        view.findViewById<View>(R.id.tvNoReviews).isVisible = !loading && reviews.isEmpty()
+                    }
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.stats.collect { stats ->
-                stats ?: return@collect
-                renderStats(view, stats)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.status.collect { s ->
+                    view.findViewById<Button>(R.id.btnPlayed).isSelected    = s.status == "played"
+                    view.findViewById<Button>(R.id.btnPending).isSelected   = s.status == "plan_to_play"
+                    view.findViewById<Button>(R.id.btnAbandoned).isSelected = s.status == "dropped"
+                    view.findViewById<ImageButton>(R.id.btnLike).setImageResource(
+                        if (s.isLiked) R.drawable.ic_heart_filled else R.drawable.ic_heart_outline
+                    )
+                    view.findViewById<ImageButton>(R.id.btnFav).setImageResource(
+                        if (s.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_empty
+                    )
+                    view.findViewById<RatingBar>(R.id.ratingBar).rating = s.rating ?: 0f
+                }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.extras.collect { extras ->
+                    extras ?: return@collect
+                    renderGenres(view, extras.genres)
+                    renderSimilarGames(view, extras.similarGames)
+                }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.stats.collect { stats ->
+                    stats ?: return@collect
+                    renderStats(view, stats)
+                }
             }
         }
     }
