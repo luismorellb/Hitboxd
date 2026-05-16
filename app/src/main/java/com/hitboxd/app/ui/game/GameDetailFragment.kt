@@ -102,10 +102,18 @@ class GameDetailViewModel : ViewModel() {
         _reviewsLoading.value = false
     }
 
+    private val _activityLoading = MutableStateFlow(false)
+    val activityLoading: StateFlow<Boolean> = _activityLoading
+
     private suspend fun loadStatus(gameId: Int) {
-        when (val r = activityRepo.checkStatus(gameId)) {
-            is NetworkResult.Success -> _status.value = r.data
-            else -> {}
+        _activityLoading.value = true
+        try {
+            when (val r = activityRepo.checkStatus(gameId)) {
+                is NetworkResult.Success -> _status.value = r.data
+                else -> {}
+            }
+        } finally {
+            _activityLoading.value = false
         }
     }
 
@@ -138,9 +146,17 @@ class GameDetailViewModel : ViewModel() {
     }
 
     fun updateRating(rating: Float) {
-        _status.value = _status.value.copy(rating = rating)
+        val prev = _status.value
+        val effectiveRating = if (rating == prev.rating) null else rating.takeIf { it > 0f }
+        _status.value = prev.copy(rating = effectiveRating)
         val gameId = _game.value?.idGame ?: return
-        viewModelScope.launch { activityRepo.logActivity(gameId, rating = rating) }
+        viewModelScope.launch {
+            val result = activityRepo.logActivity(gameId, rating = effectiveRating)
+            if (result is NetworkResult.Error) {
+                _status.value = prev
+                _actionError.tryEmit("No se pudo guardar la valoracion")
+            }
+        }
     }
 
     fun toggleLike() {
@@ -222,6 +238,7 @@ class GameDetailFragment : Fragment() {
     private lateinit var reviewAdapter: ReviewAdapter
     private lateinit var similarAdapter: GameCardAdapter
     private lateinit var tvViewers: TextView
+    private var isFetchingActivity = false
 
     private val currentUserId by lazy { SessionManager(requireContext()).getUserId() }
 
@@ -340,7 +357,7 @@ class GameDetailFragment : Fragment() {
                 .show(childFragmentManager, "review")
         }
         view.findViewById<RatingBar>(R.id.ratingBar).setOnRatingBarChangeListener { _, rating, fromUser ->
-            if (fromUser) vm.updateRating(rating)
+            if (fromUser && !isFetchingActivity) vm.updateRating(rating)
         }
     }
 
@@ -410,6 +427,13 @@ class GameDetailFragment : Fragment() {
                 vm.stats.collect { stats ->
                     stats ?: return@collect
                     renderStats(view, stats)
+                }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.activityLoading.collect { loading ->
+                    isFetchingActivity = loading
                 }
             }
         }
