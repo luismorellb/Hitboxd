@@ -72,7 +72,7 @@
                             android:padding="8dp">
 
                             <TextView
-                                android:id="@+id/tvTotalUsers"
+                                android:id="@+id/tvActiveUsers"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/stat_zero"
@@ -83,7 +83,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/stat_label_total_users"
+                                android:text="@string/stat_label_active_users"
                                 android:textColor="@color/text_white"
                                 android:textSize="11sp"/>
                         </LinearLayout>
@@ -147,7 +147,7 @@
                             android:padding="8dp">
 
                             <TextView
-                                android:id="@+id/tvCachedGames"
+                                android:id="@+id/tvTotalGames"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/stat_zero"
@@ -158,7 +158,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/stat_label_cached_games"
+                                android:text="@string/stat_label_total_games"
                                 android:textColor="@color/text_white"
                                 android:textSize="11sp"/>
                         </LinearLayout>

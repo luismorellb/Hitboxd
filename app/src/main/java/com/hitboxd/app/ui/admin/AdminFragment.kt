@@ -21,6 +21,7 @@ import com.hitboxd.app.common.adapter.AdminUserAdapter
 import com.hitboxd.app.common.adapter.ReportedReviewAdapter
 import com.hitboxd.app.common.dialog.ReviewDetailDialogFragment
 import com.hitboxd.app.data.model.*
+import com.hitboxd.app.data.repository.AdminRepository
 import com.hitboxd.app.data.repository.GameRepository
 import com.hitboxd.app.data.repository.ReviewRepository
 import com.hitboxd.app.data.repository.UserRepository
@@ -33,6 +34,7 @@ import kotlinx.coroutines.launch
 // ─── VIEWMODEL ───────────────────────────────────────────
 class AdminViewModel : ViewModel() {
 
+    private val adminRepo  = AdminRepository()
     private val gameRepo   = GameRepository()
     private val reviewRepo = ReviewRepository()
     private val userRepo   = UserRepository()
@@ -51,6 +53,9 @@ class AdminViewModel : ViewModel() {
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
+
+    private val _stats = MutableStateFlow<AdminGlobalStats?>(null)
+    val stats: StateFlow<AdminGlobalStats?> = _stats
 
     private val _toast = MutableSharedFlow<Pair<String, Boolean>>()
     val toast: SharedFlow<Pair<String, Boolean>> = _toast
@@ -78,6 +83,16 @@ class AdminViewModel : ViewModel() {
                     _userTotalPages.value =
                         ((r.data.total + r.data.limit - 1) / r.data.limit).coerceAtLeast(1)
                 }
+                else -> {}
+            }
+        }
+    }
+
+    fun loadGlobalStats() {
+        viewModelScope.launch {
+            when (val r = adminRepo.getGlobalStats()) {
+                is NetworkResult.Success -> _stats.value = r.data
+                is NetworkResult.Error   -> _toast.emit("Stats error: ${r.message}" to true)
                 else -> {}
             }
         }
@@ -146,6 +161,7 @@ class AdminViewModel : ViewModel() {
                 }
             }
             launch { loadUsers() }
+            launch { loadGlobalStats() }
             _isLoading.value = false
         }
     }
@@ -321,29 +337,20 @@ class AdminFragment : Fragment() {
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.games.collect { games ->
-                view.findViewById<TextView>(R.id.tvCachedGames).text = games.size.toString()
+            vm.stats.collect { stats ->
+                stats ?: return@collect
+                view.findViewById<TextView>(R.id.tvActiveUsers).text    = stats.counts.activeUsers.toString()
+                view.findViewById<TextView>(R.id.tvBannedUsers).text    = stats.counts.bannedUsers.toString()
+                view.findViewById<TextView>(R.id.tvTotalGames).text     = stats.counts.totalGames.toString()
+                view.findViewById<TextView>(R.id.tvTotalReviews).text   = stats.counts.totalReviews.toString()
+                view.findViewById<TextView>(R.id.tvPendingReports).text = stats.counts.pendingReports.toString()
+                view.findViewById<TextView>(R.id.tvRecentSignups).text  = stats.counts.recentSignups7d.toString()
+                view.findViewById<TextView>(R.id.tvAdminId).text        = stats.admin.idUser.toString()
+                renderChart(view.findViewById(R.id.llReviewsChart), stats.reviewsPerDay7d)
             }
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.reportedReviews.collect { reviews ->
-                view.findViewById<TextView>(R.id.tvPendingReports).text = reviews.size.toString()
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.totalUsers.collect { count ->
-                view.findViewById<TextView>(R.id.tvTotalUsers).text = count.toString()
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.adminUserId.collect { id ->
-                view.findViewById<TextView>(R.id.tvAdminId).text =
-                    if (id != -1) id.toString() else session.getUserId().toString()
-            }
-        }
+        view.findViewById<Button>(R.id.btnRefreshStats).setOnClickListener { vm.loadGlobalStats() }
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.toast.collect { (msg, isError) ->
@@ -355,6 +362,27 @@ class AdminFragment : Fragment() {
                     )
                 }.show()
             }
+        }
+    }
+
+    private fun renderChart(container: LinearLayout, data: List<DayCount>) {
+        container.removeAllViews()
+        if (data.isEmpty()) return
+        val maxCount = data.maxOf { it.count }.coerceAtLeast(1)
+        val maxBarPx = (100 * resources.displayMetrics.density).toInt()
+        data.forEach { item ->
+            val col = layoutInflater.inflate(R.layout.col_bar_chart, container, false)
+            col.findViewById<TextView>(R.id.tvBarCount).text = item.count.toString()
+            col.findViewById<TextView>(R.id.tvBarDate).text  = item.date.takeLast(5)
+            val barH    = ((item.count.toFloat() / maxCount) * maxBarPx).toInt().coerceAtLeast(4)
+            val spacerH = maxBarPx - barH
+            col.findViewById<View>(R.id.barSpacer).layoutParams =
+                LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, spacerH)
+            col.findViewById<View>(R.id.barFill).layoutParams =
+                LinearLayout.LayoutParams(
+                    (16 * resources.displayMetrics.density).toInt(), barH
+                )
+            container.addView(col)
         }
     }
 }
