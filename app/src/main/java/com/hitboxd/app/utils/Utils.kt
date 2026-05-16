@@ -39,7 +39,9 @@ class SessionManager(context: Context) {
     fun getUserId(): Int        = prefs.getInt(KEY_USER_ID, -1)
     fun getUsername(): String?  = prefs.getString(KEY_USERNAME, null)
     fun isAdmin(): Boolean      = prefs.getBoolean(KEY_IS_ADMIN, false)
-    fun getAvatarUrl(): String? = prefs.getString(KEY_AVATAR, null)
+    fun updateAvatarUrl(avatarUrl: String?) {
+        prefs.edit { putString(KEY_AVATAR, avatarUrl) }
+    }
     fun isLoggedIn(): Boolean   = getUserId() != -1
 
     fun clear() = prefs.edit { clear() }

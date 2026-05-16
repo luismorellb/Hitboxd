@@ -4,7 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.*
 import android.widget.*
-import androidx.core.view.isVisible
+import androidx.appcompat.widget.SwitchCompat
+import androidx.core.content.edit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
@@ -35,9 +36,6 @@ class SettingsViewModel : ViewModel() {
     private val _user      = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user
 
-    private val _isLoading = MutableStateFlow(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
     private val _isSaving  = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving
 
@@ -49,7 +47,6 @@ class SettingsViewModel : ViewModel() {
 
     fun load() {
         viewModelScope.launch {
-            _isLoading.value = true
             when (val r = userRepo.getMyProfile()) {
                 is NetworkResult.Success -> {
                     _user.value            = r.data
@@ -57,7 +54,6 @@ class SettingsViewModel : ViewModel() {
                 }
                 else -> {}
             }
-            _isLoading.value = false
         }
     }
 
@@ -248,6 +244,12 @@ class SettingsAvatarFragment : Fragment() {
                 if (etUrl.text.isBlank()) etUrl.setText(url)
             }
         }
+        viewLifecycleOwner.lifecycleScope.launch {
+            vm.user.collect { user ->
+                user ?: return@collect
+                SessionManager(requireContext()).updateAvatarUrl(user.avatarUrl)
+            }
+        }
 
         btnRandom.setOnClickListener { vm.generateRandomAvatar() }
 
@@ -289,9 +291,9 @@ class SettingsNotificationsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         // Toggles locales (sin endpoint en la API actual)
-        val switchNewFollower = view.findViewById<Switch>(R.id.switchNewFollower)
-        val switchNewReview   = view.findViewById<Switch>(R.id.switchNewReview)
-        val switchNewLike     = view.findViewById<Switch>(R.id.switchNewLike)
+        val switchNewFollower = view.findViewById<SwitchCompat>(R.id.switchNewFollower)
+        val switchNewReview   = view.findViewById<SwitchCompat>(R.id.switchNewReview)
+        val switchNewLike     = view.findViewById<SwitchCompat>(R.id.switchNewLike)
 
         // Leer estado guardado localmente
         val prefs = requireContext().getSharedPreferences("notif_prefs", android.content.Context.MODE_PRIVATE)
@@ -301,13 +303,13 @@ class SettingsNotificationsFragment : Fragment() {
 
         // Guardar estado al cambiar
         switchNewFollower.setOnCheckedChangeListener { _, checked ->
-            prefs.edit().putBoolean("notif_follower", checked).apply()
+            prefs.edit { putBoolean("notif_follower", checked) }
         }
         switchNewReview.setOnCheckedChangeListener { _, checked ->
-            prefs.edit().putBoolean("notif_review", checked).apply()
+            prefs.edit { putBoolean("notif_review", checked) }
         }
         switchNewLike.setOnCheckedChangeListener { _, checked ->
-            prefs.edit().putBoolean("notif_like", checked).apply()
+            prefs.edit { putBoolean("notif_like", checked) }
         }
     }
 }

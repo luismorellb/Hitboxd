@@ -79,6 +79,9 @@
     <string name="label_report_reasons">Report reasons</string>
     <string name="action_close">Close</string>
     <string name="notifications_title">Notifications</string>
+    <string name="notif_label_new_follower">New Follower</string>
+    <string name="notif_label_new_review">New Review on my game</string>
+    <string name="notif_label_liked_review">Someone liked my review</string>
     <string name="action_mark_all_read">Mark all read</string>
     <string name="notif_empty">No notifications yet</string>
     <string name="notif_offline_banner">Sin conexion en tiempo real (usando polling)</string>
