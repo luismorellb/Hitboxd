@@ -41,6 +41,9 @@ object SocketManager {
 
         val options = IO.Options().apply {
             transports = arrayOf("websocket")
+            reconnection = true
+            reconnectionDelay = 1000L
+            reconnectionDelayMax = 5000L
             if (cookieHeader.isNotBlank()) {
                 extraHeaders = mapOf("Cookie" to listOf(cookieHeader))
             }
@@ -53,14 +56,14 @@ object SocketManager {
             on(Socket.EVENT_DISCONNECT) {
                 _events.tryEmit(SocketEvent.Disconnected)
             }
-            on("notification_new") { args ->
+            on("notification:new") { args ->
                 val obj = args.getOrNull(0) as? JSONObject ?: return@on
                 try {
                     val notif = gson.fromJson(obj.toString(), Notification::class.java)
                     _events.tryEmit(SocketEvent.NotificationNew(notif))
                 } catch (_: Exception) {}
             }
-            on("unread_count") { args ->
+            on("notification:unread_count") { args ->
                 val count = when (val raw = args.getOrNull(0)) {
                     is Int        -> raw
                     is JSONObject -> raw.optInt("count", 0)
@@ -68,16 +71,14 @@ object SocketManager {
                 }
                 _events.tryEmit(SocketEvent.UnreadCount(count))
             }
-            on("read_all") {
-                _events.tryEmit(SocketEvent.ReadAll)
-            }
-            on("read_one") { args ->
-                val id = when (val raw = args.getOrNull(0)) {
-                    is Int        -> raw
-                    is JSONObject -> raw.optInt("id", -1)
-                    else          -> -1
+            on("notification:read") { args ->
+                val obj = args.getOrNull(0) as? JSONObject ?: return@on
+                if (obj.optBoolean("all", false)) {
+                    _events.tryEmit(SocketEvent.ReadAll)
+                } else if (obj.has("id")) {
+                    val id = obj.getInt("id")
+                    _events.tryEmit(SocketEvent.ReadOne(id))
                 }
-                if (id != -1) _events.tryEmit(SocketEvent.ReadOne(id))
             }
             connect()
         }

@@ -11,18 +11,14 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.hitboxd.app.R
-import com.hitboxd.app.data.model.NetworkResult
 import com.hitboxd.app.data.network.AuthEvent
 import com.hitboxd.app.data.network.AuthEventBus
 import com.hitboxd.app.data.network.RetrofitClient
 import com.hitboxd.app.data.network.SocketEvent
 import com.hitboxd.app.data.network.SocketManager
-import com.hitboxd.app.data.repository.NotificationRepository
 import com.hitboxd.app.ui.landing.LandingActivity
 import com.hitboxd.app.utils.NotificationBadgeManager
 import com.hitboxd.app.utils.SessionManager
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class HomeActivity : AppCompatActivity() {
@@ -41,11 +37,12 @@ class HomeActivity : AppCompatActivity() {
         bottomNav.setupWithNavController(navController)
 
         setupNotificationBadge(bottomNav)
-        startNotificationPolling()
         observeAuthEvents()
         setupSocket()
 
-        SocketManager.connect(RetrofitClient.cookieJar)
+        if (RetrofitClient.cookieJar.hasToken()) {
+            SocketManager.connect(RetrofitClient.cookieJar)
+        }
     }
 
     private fun setupNotificationBadge(bottomNav: BottomNavigationView) {
@@ -54,20 +51,6 @@ class HomeActivity : AppCompatActivity() {
                 val badge = bottomNav.getOrCreateBadge(R.id.notificationsFragment)
                 badge.isVisible = count > 0
                 badge.number    = count
-            }
-        }
-    }
-
-    private fun startNotificationPolling() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                while (isActive) {
-                    val result = NotificationRepository().list()
-                    if (result is NetworkResult.Success) {
-                        NotificationBadgeManager.set(result.data.unreadCount)
-                    }
-                    delay(60_000)
-                }
             }
         }
     }
