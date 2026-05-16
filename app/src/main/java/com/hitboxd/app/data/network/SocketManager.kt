@@ -84,13 +84,19 @@ object SocketManager {
                 _events.tryEmit(SocketEvent.UnreadCount(count))
             }
             on("notification:read") { args ->
-                val obj = args.getOrNull(0) as? JSONObject ?: return@on
-                if (obj.optBoolean("all", false)) {
-                    _events.tryEmit(SocketEvent.ReadAll)
-                } else if (obj.has("id")) {
-                    val id = obj.getInt("id")
-                    _events.tryEmit(SocketEvent.ReadOne(id))
-                }
+                try {
+                    val obj = args.getOrNull(0) as? JSONObject ?: return@on
+                    if (obj.optBoolean("all", false)) {
+                        _events.tryEmit(SocketEvent.ReadAll)
+                    } else if (obj.has("id")) {
+                        val id = try {
+                            obj.getInt("id")
+                        } catch (_: Exception) {
+                            obj.optString("id", "").toIntOrNull()
+                        } ?: return@on
+                        _events.tryEmit(SocketEvent.ReadOne(id))
+                    }
+                } catch (_: Exception) {}
             }
             on("review:like_changed") { args ->
                 val obj = args.getOrNull(0) as? JSONObject ?: return@on

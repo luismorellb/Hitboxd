@@ -142,21 +142,23 @@ class NotificationsFragment : Fragment() {
         btnMarkAllRead.setOnClickListener { vm.markAllRead() }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            vm.notifications.collect { list ->
-                adapter.submitList(list)
-                tvEmpty.isVisible = list.isEmpty()
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.unreadCount.collect { count ->
-                btnMarkAllRead.isVisible = count > 0
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            vm.isLoading.collect { loading ->
-                swipeRefresh.isRefreshing = loading
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    vm.notifications.collect { list ->
+                        adapter.submitList(list)
+                        tvEmpty.isVisible = list.isEmpty()
+                    }
+                }
+                launch {
+                    vm.unreadCount.collect { count ->
+                        btnMarkAllRead.isVisible = count > 0
+                    }
+                }
+                launch {
+                    vm.isLoading.collect { loading ->
+                        swipeRefresh.isRefreshing = loading
+                    }
+                }
             }
         }
 
@@ -252,11 +254,6 @@ class NotificationsFragment : Fragment() {
                 }
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        vm.markAllRead()
     }
 
     override fun onDestroyView() {
