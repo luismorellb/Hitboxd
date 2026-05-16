@@ -160,6 +160,13 @@ data class ListRequest(
     @SerializedName("list_type") val listType: String = "collection"
 )
 
+data class ListUpdateRequest(
+    val title: String? = null,
+    val description: String? = null,
+    @SerializedName("is_public") val isPublic: Boolean? = null,
+    @SerializedName("list_type") val listType: String? = null
+)
+
 data class AdminGlobalStats(
     val counts: StatsCounts = StatsCounts(),
     @SerializedName("reviews_per_day_7d") val reviewsPerDay7d: List<DayCount> = emptyList(),

@@ -200,6 +200,12 @@ interface ApiService {
         @Path("itemId") itemId: Int
     ): Response<MessageResponse>
 
+    @PUT("lists/{listId}")
+    suspend fun updateList(
+        @Path("listId") listId: Int,
+        @Body body: ListUpdateRequest
+    ): Response<MessageResponse>
+
     @DELETE("lists/{listId}")
     suspend fun deleteList(@Path("listId") listId: Int): Response<MessageResponse>
 

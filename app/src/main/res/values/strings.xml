@@ -118,6 +118,15 @@
     <string name="content_desc_favorite">Favorite</string>
 
     <!-- List detail -->
+    <string name="btn_edit_list">Edit</string>
+    <string name="btn_add_game">+ Add Game</string>
+    <string name="btn_delete_list">Delete List</string>
+    <string name="dialog_title_edit_list">Edit List</string>
+    <string name="hint_list_title">List title</string>
+    <string name="hint_list_description">Description (optional)</string>
+    <string name="label_public_list">Public</string>
+    <string name="label_list_type_collection">Collection</string>
+    <string name="label_list_type_ranking">Ranking</string>
     <string name="content_desc_remove_game">Remove game</string>
     <string name="content_desc_drag_handle">Drag to reorder</string>
     <string name="list_label_games">juegos</string>

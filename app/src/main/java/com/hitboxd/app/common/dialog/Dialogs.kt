@@ -5,14 +5,22 @@ import android.os.Bundle
 import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.hitboxd.app.R
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.switchmaterial.SwitchMaterial
+import com.hitboxd.app.data.model.ListUpdateRequest
+import com.hitboxd.app.data.model.NetworkResult
 import com.hitboxd.app.data.model.Review
+import com.hitboxd.app.data.model.UserList
+import com.hitboxd.app.data.repository.ListRepository
 import com.hitboxd.app.utils.DateUtils
+import kotlinx.coroutines.launch
 
 // ─── AUTH DIALOG ─────────────────────────────────────────
 // Contiene 2 tabs: Sign In (usa username, NO email) y Create Account
@@ -256,6 +264,107 @@ class AddGameToListDialogFragment : DialogFragment() {
         }
 
         view.findViewById<Button>(R.id.btnCancel).setOnClickListener { dismiss() }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+    }
+}
+
+// ─── EDIT LIST DIALOG ────────────────────────────────────
+class EditListDialogFragment : DialogFragment() {
+
+    companion object {
+        private const val ARG_LIST_ID = "list_id"
+        private const val ARG_TITLE   = "title"
+        private const val ARG_DESC    = "desc"
+        private const val ARG_PUBLIC  = "is_public"
+        private const val ARG_TYPE    = "list_type"
+
+        fun newInstance(list: UserList) = EditListDialogFragment().apply {
+            arguments = bundleOf(
+                ARG_LIST_ID to list.idList,
+                ARG_TITLE   to list.title,
+                ARG_DESC    to list.description.orEmpty(),
+                ARG_PUBLIC  to list.isPublic,
+                ARG_TYPE    to (list.listType ?: "collection")
+            )
+        }
+    }
+
+    var onSaved: ((UserList) -> Unit)? = null
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View = inflater.inflate(R.layout.dialog_edit_list, container, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val args = requireArguments()
+        val origTitle  = args.getString(ARG_TITLE)  ?: ""
+        val origDesc   = args.getString(ARG_DESC).takeIf { it?.isNotBlank() == true }
+        val origPublic = args.getBoolean(ARG_PUBLIC, true)
+        val origType   = args.getString(ARG_TYPE)   ?: "collection"
+        val listId     = args.getInt(ARG_LIST_ID)
+
+        val etTitle      = view.findViewById<EditText>(R.id.etTitle)
+        val etDesc       = view.findViewById<EditText>(R.id.etDescription)
+        val switchPublic = view.findViewById<SwitchMaterial>(R.id.switchPublic)
+        val radioCol     = view.findViewById<RadioButton>(R.id.radioCollection)
+        val radioRank    = view.findViewById<RadioButton>(R.id.radioRanking)
+
+        etTitle.setText(origTitle)
+        etDesc.setText(origDesc.orEmpty())
+        switchPublic.isChecked = origPublic
+        if (origType == "ranking") radioRank.isChecked = true else radioCol.isChecked = true
+
+        view.findViewById<Button>(R.id.btnCancel).setOnClickListener { dismiss() }
+
+        view.findViewById<Button>(R.id.btnSave).setOnClickListener {
+            val newTitle  = etTitle.text.toString().trim()
+            if (newTitle.isBlank()) {
+                etTitle.error = getString(R.string.field_required)
+                return@setOnClickListener
+            }
+            val newDesc   = etDesc.text.toString().trim().takeIf { it.isNotBlank() }
+            val newPublic = switchPublic.isChecked
+            val newType   = if (radioRank.isChecked) "ranking" else "collection"
+
+            val req = ListUpdateRequest(
+                title       = if (newTitle != origTitle)   newTitle   else null,
+                description = if (newDesc  != origDesc)    newDesc    else null,
+                isPublic    = if (newPublic != origPublic) newPublic  else null,
+                listType    = if (newType  != origType)    newType    else null
+            )
+
+            if (req.title == null && req.description == null && req.isPublic == null && req.listType == null) {
+                dismiss()
+                return@setOnClickListener
+            }
+
+            val repo = ListRepository()
+            lifecycleScope.launch {
+                when (val r = repo.updateList(listId, req)) {
+                    is NetworkResult.Success -> {
+                        onSaved?.invoke(
+                            UserList(
+                                idList      = listId,
+                                title       = newTitle,
+                                description = newDesc,
+                                isPublic    = newPublic,
+                                listType    = newType
+                            )
+                        )
+                        dismiss()
+                    }
+                    is NetworkResult.Error -> Toast.makeText(context, r.message, Toast.LENGTH_SHORT).show()
+                    else -> {}
+                }
+            }
+        }
     }
 
     override fun onStart() {

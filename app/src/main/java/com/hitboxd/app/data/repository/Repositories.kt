@@ -217,6 +217,9 @@ class ListRepository {
     suspend fun reorderItems(listId: Int, items: List<ReorderItem>) =
         safeCall { api.reorderList(listId, ReorderRequest(items)) }
 
+    suspend fun updateList(listId: Int, body: ListUpdateRequest) =
+        safeCall { api.updateList(listId, body) }
+
     suspend fun removeItem(listId: Int, itemId: Int) =
         safeCall { api.removeListItem(listId, itemId) }
 

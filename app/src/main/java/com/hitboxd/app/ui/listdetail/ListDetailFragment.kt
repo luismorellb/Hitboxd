@@ -20,6 +20,7 @@ import com.hitboxd.app.R
 import com.hitboxd.app.common.adapter.ListItemAdapter
 import com.hitboxd.app.common.dialog.AddGameToListDialogFragment
 import com.hitboxd.app.common.dialog.ConfirmDeleteDialogFragment
+import com.hitboxd.app.common.dialog.EditListDialogFragment
 import com.hitboxd.app.data.model.*
 import com.hitboxd.app.data.repository.ListRepository
 import com.hitboxd.app.utils.SessionManager
@@ -119,6 +120,30 @@ class ListDetailViewModel : ViewModel() {
                 else -> {}
             }
         }
+    }
+
+    @Suppress("unused")
+    fun updateList(title: String?, description: String?, isPublic: Boolean?, listType: String?) {
+        viewModelScope.launch {
+            val req = ListUpdateRequest(title, description, isPublic, listType)
+            when (val r = repo.updateList(listId, req)) {
+                is NetworkResult.Success -> {
+                    load(listId)
+                    _toast.emit("List updated" to false)
+                }
+                is NetworkResult.Error -> _toast.emit("Error: ${r.message}" to true)
+                else -> {}
+            }
+        }
+    }
+
+    fun applyUpdatedList(list: UserList) {
+        _listData.value = _listData.value?.copy(
+            title       = list.title,
+            description = list.description,
+            isPublic    = list.isPublic,
+            listType    = list.listType
+        )
     }
 
     fun deleteList(onSuccess: () -> Unit) {
@@ -261,12 +286,22 @@ class ListDetailFragment : Fragment() {
 
                 view.findViewById<Button>(R.id.btnAddGame).isVisible    = isMine
                 view.findViewById<Button>(R.id.btnDeleteList).isVisible = isMine
+                view.findViewById<Button>(R.id.btnEditList).apply {
+                    isVisible = isMine
+                    setOnClickListener {
+                        val current = vm.listData.value ?: return@setOnClickListener
+                        EditListDialogFragment.newInstance(current).apply {
+                            onSaved = { updated -> vm.applyUpdatedList(updated) }
+                        }.show(parentFragmentManager, "edit_list")
+                    }
+                }
             }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             vm.isSaving.collect { saving ->
                 view.findViewById<Button>(R.id.btnAddGame).isEnabled    = !saving
+                view.findViewById<Button>(R.id.btnEditList).isEnabled   = !saving
                 view.findViewById<Button>(R.id.btnDeleteList).isEnabled = !saving
             }
         }
