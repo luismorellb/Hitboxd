@@ -105,7 +105,7 @@ class TrackerFragment : Fragment() {
                     "${game.developer ?: "Unknown"} • ${DateUtils.extractYear(game.releaseDate)}"
                 ImageUtils.loadBanner(
                     requireContext(),
-                    game.coverUrl ?: game.backgroundUrl,
+                    game.backgroundUrl ?: game.coverUrl,
                     view.findViewById(R.id.imgPoster)
                 )
                 view.findViewById<View>(R.id.cardGame).isVisible = true
