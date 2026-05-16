@@ -46,16 +46,16 @@ object SocketManager {
 
         val socketUrl = RetrofitClient.BASE_URL.removeSuffix("api/")
 
-        val cookieHeader = socketUrl.toHttpUrlOrNull()?.let { url ->
-            cookieJar.loadForRequest(url)
-                .joinToString("; ") { "${it.name}=${it.value}" }
-        }.orEmpty()
+        fun buildCookieHeader(): String =
+            socketUrl.toHttpUrlOrNull()?.let { url ->
+                cookieJar.loadForRequest(url).joinToString("; ") { "${it.name}=${it.value}" }
+            }.orEmpty()
+
+        val cookieHeader = buildCookieHeader()
 
         val options = IO.Options().apply {
-            transports = arrayOf("websocket")
-            reconnection = true
-            reconnectionDelay = 1000L
-            reconnectionDelayMax = 5000L
+            transports   = arrayOf("websocket")
+            reconnection = false          // manejamos reconexion manualmente para renovar el cookie
             if (cookieHeader.isNotBlank()) {
                 extraHeaders = mapOf("Cookie" to listOf(cookieHeader))
             }
@@ -134,6 +134,11 @@ object SocketManager {
             }
             connect()
         }
+    }
+
+    fun reconnect(cookieJar: PersistentCookieJar) {
+        disconnect()
+        connect(cookieJar)
     }
 
     fun emit(event: String, data: JSONObject) {

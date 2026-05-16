@@ -19,6 +19,7 @@ import com.hitboxd.app.data.network.SocketManager
 import com.hitboxd.app.ui.landing.LandingActivity
 import com.hitboxd.app.utils.NotificationBadgeManager
 import com.hitboxd.app.utils.SessionManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class HomeActivity : AppCompatActivity() {
@@ -38,6 +39,7 @@ class HomeActivity : AppCompatActivity() {
 
         setupNotificationBadge(bottomNav)
         observeAuthEvents()
+        observeSocketDisconnect()
         setupSocket()
 
         if (RetrofitClient.cookieJar.hasToken()) {
@@ -71,9 +73,28 @@ class HomeActivity : AppCompatActivity() {
                             finish()
                         }
                         is AuthEvent.SessionRefreshed -> {
-                            SocketManager.disconnect()
-                            SocketManager.connect(RetrofitClient.cookieJar)
+                            // Token renovado via HTTP — reconectar socket con cookie fresco
+                            SocketManager.reconnect(RetrofitClient.cookieJar)
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun observeSocketDisconnect() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                var delayMs = 2000L
+                SocketManager.events.collect { event ->
+                    if (event is SocketEvent.Disconnected) {
+                        delay(delayMs)
+                        delayMs = (delayMs * 2).coerceAtMost(30_000L)
+                        if (SessionManager(this@HomeActivity).isLoggedIn()) {
+                            SocketManager.reconnect(RetrofitClient.cookieJar)
+                        }
+                    } else if (event is SocketEvent.Connected) {
+                        delayMs = 2000L
                     }
                 }
             }
