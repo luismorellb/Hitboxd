@@ -1,13 +1,23 @@
 package com.hitboxd.app.data.network
 
+import android.util.Log
 import com.google.gson.Gson
 import com.hitboxd.app.data.model.Notification
 import io.socket.client.IO
 import io.socket.client.Socket
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONObject
 
 sealed class SocketEvent {
@@ -33,6 +43,10 @@ sealed class SocketEvent {
 
 object SocketManager {
 
+    private const val TAG = "SocketManager"
+    private const val RECONNECT_DELAY_INITIAL_MS = 3_000L
+    private const val RECONNECT_DELAY_MAX_MS = 30_000L
+
     private val gson = Gson()
     private var socket: Socket? = null
 
@@ -41,7 +55,13 @@ object SocketManager {
 
     val isConnected: Boolean get() = socket?.connected() == true
 
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var reconnectJob: Job? = null
+
     fun connect(cookieJar: PersistentCookieJar) {
+        reconnectJob?.cancel()
+        reconnectJob = null
+
         if (socket?.connected() == true) return
 
         val socketUrl = RetrofitClient.BASE_URL.removeSuffix("api/")
@@ -67,6 +87,7 @@ object SocketManager {
             }
             on(Socket.EVENT_DISCONNECT) {
                 _events.tryEmit(SocketEvent.Disconnected)
+                scheduleReconnect(cookieJar, RECONNECT_DELAY_INITIAL_MS)
             }
             on("notification:new") { args ->
                 val obj = args.getOrNull(0) as? JSONObject ?: return@on
@@ -136,6 +157,39 @@ object SocketManager {
         }
     }
 
+    private fun scheduleReconnect(cookieJar: PersistentCookieJar, delayMs: Long) {
+        reconnectJob?.cancel()
+        reconnectJob = scope.launch {
+            delay(delayMs)
+            val refreshUrl = RetrofitClient.BASE_URL + "auth/refresh"
+            try {
+                val client = OkHttpClient.Builder()
+                    .cookieJar(cookieJar)
+                    .build()
+                val request = Request.Builder()
+                    .url(refreshUrl)
+                    .get()
+                    .build()
+                val response = client.newCall(request).execute()
+                val code = response.code
+                response.close()
+                if (code == 200) {
+                    connect(cookieJar)
+                } else {
+                    val nextDelay = minOf(delayMs * 2, RECONNECT_DELAY_MAX_MS)
+                    Log.w(TAG, "auth/refresh returned $code, retrying in ${nextDelay}ms")
+                    scheduleReconnect(cookieJar, nextDelay)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                val nextDelay = minOf(delayMs * 2, RECONNECT_DELAY_MAX_MS)
+                Log.w(TAG, "auth/refresh network error: ${e.message}, retrying in ${nextDelay}ms")
+                scheduleReconnect(cookieJar, nextDelay)
+            }
+        }
+    }
+
     fun reconnect(cookieJar: PersistentCookieJar) {
         disconnect()
         connect(cookieJar)
@@ -146,6 +200,8 @@ object SocketManager {
     }
 
     fun disconnect() {
+        reconnectJob?.cancel()
+        reconnectJob = null
         socket?.disconnect()
         socket?.off()
         socket = null
